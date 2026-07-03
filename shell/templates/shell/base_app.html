@@ -91,11 +91,8 @@
   document.addEventListener("DOMContentLoaded", refreshIcons);
   document.addEventListener("alpine:initialized", refreshIcons);
   window.addEventListener("load", refreshIcons);
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("{% url 'service_worker' %}").catch(function () {});
-    });
-  }
+  // PWA/Service Worker desativado em dev (causava carregamento infinito).
+  // Re-habilitar em producao com estrategia de cache versionada.
   // Re-renderiza ícones Lucide sempre que o DOM mudar (HTMX/Alpine)
   var observer = new MutationObserver(refreshIcons);
   observer.observe(document.body, {childList:true, subtree:true});
