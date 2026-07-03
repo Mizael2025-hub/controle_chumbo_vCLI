@@ -1,0 +1,50 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Saídas · Chumbo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Histórico de Saídas</h1>
+  {% if request.user.is_admin %}
+    <a class="btn btn--primary btn--sm" href="{% url 'chumbo:liberacao' %}">+ Liberação</a>
+  {% endif %}
+</div>
+
+<section class="section">
+  {% if trxs %}
+    <table class="data">
+      <thead>
+        <tr><th>Data</th><th>Lote</th><th>Monte</th><th>Destino</th><th>Baixado</th><th>Por</th><th>Status</th>{% if request.user.is_admin %}<th></th>{% endif %}</tr>
+      </thead>
+      <tbody>
+        {% for t in trxs %}
+          <tr>
+            <td>{{ t.data_transacao|date:"d/m/Y H:i" }}</td>
+            <td>{{ t.monte.lote.numero_lote }}</td>
+            <td>x{{ t.monte.posicao_x }}·y{{ t.monte.posicao_y }}</td>
+            <td>{{ t.destino }}</td>
+            <td>{{ t.peso_baixado_kg|floatformat:3 }} kg · {{ t.barras_baixadas }}b</td>
+            <td>{{ t.created_by|default:"—" }}</td>
+            <td>
+              {% if t.estornada %}<span class="badge badge--danger">Estornada</span>
+              {% else %}<span class="badge badge--ok">Ativa</span>{% endif %}
+            </td>
+            {% if request.user.is_admin %}
+            <td>
+              {% if not t.estornada %}
+              <form method="post" action="{% url 'chumbo:estornar' t.pk %}" onsubmit="return confirm('Estornar esta liberação? Restaura o saldo do monte.')" style="display:inline">
+                {% csrf_token %}
+                <button class="btn btn--ghost btn--sm" type="submit">Estornar</button>
+              </form>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty"><p>Nenhuma saída registrada.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

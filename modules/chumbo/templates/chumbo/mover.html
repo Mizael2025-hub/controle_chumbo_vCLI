@@ -1,0 +1,26 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Mover monte · Chumbo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Mover ao setor</h1>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque_lote' pile.lote_id %}">← Voltar</a>
+</div>
+
+<section class="section">
+  <p><b>Monte:</b> {{ pile }} · {{ pile.peso_atual_kg|floatformat:3 }} kg · {{ pile.barras_atuais }} barras · {{ pile.get_localizacao_display }}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endfor %}
+    <button class="btn btn--primary" type="submit">Mover</button>
+    <a class="btn btn--ghost" href="{% url 'chumbo:estoque_lote' pile.lote_id %}">Cancelar</a>
+  </form>
+</section>
+{% endblock %}

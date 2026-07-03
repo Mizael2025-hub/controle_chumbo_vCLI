@@ -18,7 +18,13 @@
     <a class="card" href="{% url 'chumbo:lote_create' %}" style="text-decoration:none;color:inherit">
       <h3>Entrada</h3><p>Receber chumbo e montar a grade (RF20-RF25)</p>
     </a>
+    <a class="card" href="{% url 'chumbo:liberacao' %}" style="text-decoration:none;color:inherit">
+      <h3>Liberação</h3><p>Saída agrupada de montes (RF30-RF36)</p>
+    </a>
     {% endif %}
+    <a class="card" href="{% url 'chumbo:liberacao_hist' %}" style="text-decoration:none;color:inherit">
+      <h3>Saídas</h3><p>Histórico de liberações e estornos (RF70/RF76)</p>
+    </a>
   </div>
 </section>
 

@@ -1,0 +1,85 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Liberação · Chumbo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Liberação / Saída</h1>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
+</div>
+
+<section class="section">
+  <p class="muted">Selecione os montes a liberar e informe barras + peso de cada um. O kg deve bater com as barras (usando o peso por barra do monte) — você pode editar manualmente se necessário.</p>
+  <form method="post" x-data="liberacao()">
+    {% csrf_token %}
+    <div class="field">
+      <label for="id_destino">{{ form.destino.label }}</label>
+      {{ form.destino }}
+    </div>
+    <div class="field">
+      <label for="id_setor">{{ form.setor.label }}</label>
+      {{ form.setor }}
+    </div>
+    <div class="field">
+      <label for="id_observacao">{{ form.observacao.label }}</label>
+      {{ form.observacao }}
+    </div>
+    {% if form.non_field_errors %}
+      <ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <div class="grid-cards" style="grid-template-columns:1fr">
+      {% for m in montes %}
+        <div class="card" x-data="monteLinha({{ m.barras_atuais }}, {{ m.peso_atual_kg|floatformat:3 }})">
+          <div><b>{{ m.lote.numero_lote }}</b> · {{ m.lote.liga }} · x{{ m.posicao_x }}·y{{ m.posicao_y }}</div>
+          <div class="muted" style="font-size:var(--sp-2)">Saldo: <span x-text="saldoKg"></span> kg · <span x-text="saldoBarras"></span> barras</div>
+          <div class="row-actions" style="margin-top:var(--sp-2)">
+            <label style="font-size:13px">Barras
+              <input type="text" inputmode="numeric" name="monte_{{ m.id }}_barras" @input="onBarras" style="width:80px" class="input">
+            </label>
+            <label style="font-size:13px">Peso (kg)
+              <input type="text" inputmode="decimal" name="monte_{{ m.id }}_peso" @input="onPeso" style="width:110px" class="input">
+            </label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="btn-row" style="margin-top:var(--sp-4)">
+      <button class="btn btn--primary" type="submit">Confirmar liberação</button>
+      <a class="btn btn--ghost" href="{% url 'chumbo:estoque' %}">Cancelar</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+<script>
+function monteLinha(barrasTotal, kgTotal) {
+  return {
+    barrasTotal: barrasTotal, kgTotal: parseFloat(kgTotal),
+    pesoPorBarra: barrasTotal > 0 ? parseFloat(kgTotal) / barrasTotal : 0,
+    saldoBarras: barrasTotal, saldoKg: String(kgTotal),
+    kgManual: false,
+    init() { this.saldoBarras = this.barrasTotal; this.saldoKg = String(this.kgTotal); },
+    onBarras(e) {
+      var v = parseInt(e.target.value || '0', 10) || 0;
+      if (isNaN(v)) v = 0;
+      this.saldoBarras = this.barrasTotal - v;
+      if (!this.kgManual) {
+        var kg = v * this.pesoPorBarra;
+        this.saldoKg = String(kg.toFixed(3));
+        this.kgManual = false;
+      }
+      this.kgManual = false;
+    },
+    onPeso(e) {
+      var v = parseFloat((e.target.value || '0').replace(',', '.')) || 0;
+      this.saldoKg = String((this.kgTotal - v).toFixed(3));
+      this.kgManual = true;
+    }
+  };
+}
+function liberacao() { return {}; }
+</script>
+{% endblock %}

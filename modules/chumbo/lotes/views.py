@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, ListView, View
 
 from base.mixins import ModulePermMixin
@@ -160,6 +160,22 @@ class EstoqueGradeView(ModulePermMixin, DetailView):
             lote.montes.filter(is_active=True).order_by("posicao_y", "posicao_x")
         )
         grid = {(p.posicao_x, p.posicao_y): p for p in piles}
+        piles_json = [
+            {
+                "pk": p.pk,
+                "pos": f"x{p.posicao_x} · y{p.posicao_y}",
+                "kg": f"{p.peso_atual_kg:.3f}",
+                "barras": p.barras_atuais,
+                "status": p.get_status_display(),
+                "local": p.get_localizacao_display(),
+                "urlReserva": reverse("chumbo:reservar_create", args=[p.pk]),
+                "urlMover": reverse("chumbo:mover", args=[p.pk]),
+                "urlSplit": reverse("chumbo:split", args=[p.pk]),
+                "urlEventos": reverse("chumbo:eventos", args=[p.pk]),
+                "urlDevolver": reverse("chumbo:devolver", args=[p.pk]),
+            }
+            for p in piles
+        ]
         matrix = []
         for y in range(lote.linhas_grade):
             row = []
@@ -179,6 +195,7 @@ class EstoqueGradeView(ModulePermMixin, DetailView):
 
         ctx.update({
             "piles": piles,
+            "piles_json": piles_json,
             "grid": grid,
             "matrix": matrix,
             "cols": lote.colunas_grade,

@@ -8,7 +8,7 @@
   <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
 </div>
 
-<section class="section" x-data="{ sel: null }">
+<section class="section" x-data="gradeView({{ piles_json|safe }})">
   <div class="metrics-row">
     <div class="metric"><span class="label">No estoque</span><span class="num">{{ estoque_kg|floatformat:3 }} kg</span><small>{{ estoque_barras }} barras</small></div>
     <div class="metric"><span class="label">Disponível</span><span class="num">{{ disponivel_kg|floatformat:3 }} kg</span><small>{{ disponivel_barras }} barras</small></div>
@@ -39,12 +39,24 @@
   </div>
 
   <div class="grade-detail" x-show="sel !== null" x-cloak>
-    <template x-for="p in [{% for p in piles %}{'pk':{{ p.pk }},'pos':'x{{ p.posicao_x }} · y{{ p.posicao_y }}','kg':'{{ p.peso_atual_kg|floatformat:3 }}','barras':{{ p.barras_atuais }},'status':'{{ p.get_status_display }}','local':'{{ p.get_localizacao_display }}'}{% if not forloop.last %},{% endif %}{% endfor %}]" :key="p.pk">
+    <template x-for="p in piles" :key="p.pk">
       <div x-show="sel === p.pk" class="detail-card">
         <h3 x-text="'Monte ' + p.pos"></h3>
         <p><b>Status:</b> <span x-text="p.status"></span></p>
         <p><b>Peso:</b> <span x-text="p.kg"></span> kg · <b>Barras:</b> <span x-text="p.barras"></span></p>
         <p><b>Localização:</b> <span x-text="p.local"></span></p>
+        {% if request.user.is_admin %}
+        <div class="btn-row" style="margin-top:var(--sp-2)">
+          <a class="btn btn--primary btn--sm" :href="p.urlReserva">Reservar</a>
+          <a class="btn btn--ghost btn--sm" :href="p.urlMover">Mover</a>
+          <a class="btn btn--ghost btn--sm" :href="p.urlSplit">Split</a>
+          <a class="btn btn--ghost btn--sm" :href="p.urlEventos">Eventos</a>
+          <form method="post" :action="p.urlDevolver" style="display:inline">
+            {% csrf_token %}
+            <button class="btn btn--ghost btn--sm" type="submit">Devolver</button>
+          </form>
+        </div>
+        {% endif %}
       </div>
     </template>
     <button class="btn btn--ghost btn--sm" @click="sel = null" style="margin-top:var(--sp-3)">Fechar</button>
@@ -54,4 +66,12 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+<script>
+function gradeView(piles) {
+  return {
+    sel: null,
+    piles: piles || []
+  };
+}
+</script>
 {% endblock %}

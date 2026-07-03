@@ -65,6 +65,7 @@ MODULES_APPS = [
     "modules.chumbo.modelos",
     "modules.chumbo.lotes",
     "modules.chumbo.montes",
+    "modules.chumbo.saida",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PLATFORM_APPS + MODULES_APPS
