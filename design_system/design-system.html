@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Design System — Plataforma PCP</title>
+<style>
+  /* ============================================================
+     TOKENS (fonte da verdade visual) — PRD §7
+     ============================================================ */
+  :root {
+    /* --- Cores base (light) --- */
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f6;
+    --text: #0b1220;
+    --text-muted: #5b6573;
+    --border: #d8dde6;
+    --primary: #4f46e5;
+    --primary-600: #4338ca;
+    --primary-50: #eef2ff;
+    --danger: #dc2626;
+    --success: #16a34a;
+    --warning: #d97706;
+
+    /* --- Status da grade (§7.2) --- */
+    --st-disponivel-bg: #dcfce7;
+    --st-disponivel-bd: #86efac;
+    --st-disponivel-fg: #166534;
+    --st-reservado-bd: #f59e0b;      /* borda amarela */
+    --st-reservado-fg: #92400e;
+    --st-parcial-bg: #e5e7eb;
+    --st-parcial-bd: #cbd5e1;
+    --st-parcial-fg: #374151;
+    --st-consumido-bg: #9ca3af;
+    --st-consumido-bd: #6b7280;
+    --st-consumido-fg: #f3f4f6;
+    --st-movido-opacity: 0.45;       /* atenuado */
+
+    /* --- Cores das ligas (§7.3) --- */
+    --liga-azul: #2563eb;
+    --liga-amarelo: #eab308;
+    --liga-vermelho: #dc2626;
+    --liga-preto: #111827;
+    --liga-cinza: #6b7280;
+    --liga-sem-cor: #9ca3af;
+    --liga-verde: #16a34a;
+    --liga-branco: #f9fafb;
+
+    /* --- Espaçamentos --- */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+    /* --- Raios --- */
+    --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-pill: 999px;
+
+    /* --- Tipografia --- */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --fs-sm: 14px; --fs-md: 16px; --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px;
+    --fw-reg: 400; --fw-med: 500; --fw-bold: 700;
+
+    /* --- Tap targets (RNF07 / §7.5) --- */
+    --tap-min: 44px;
+    --grade-cell-min: 40px;          /* ARC-14: célula nunca < 40px */
+
+    /* --- Sombras --- */
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+    --shadow-md: 0 4px 12px rgba(16,24,40,.10);
+    --shadow-lg: 0 12px 32px rgba(16,24,40,.16);
+
+    /* --- Layout --- */
+    --bottom-bar-h: 64px;
+    --sidebar-w: 240px;
+  }
+
+  /* Dark mode (RNF14: prefers-color-scheme) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0f14; --surface: #11161d; --surface-2: #161c25;
+      --text: #e6e8ee; --text-muted: #9aa3b2; --border: #232b38;
+      --primary-50: #1e1b3a;
+      --st-disponivel-bg: #0f2e1a; --st-disponivel-bd: #16a34a; --st-disponivel-fg: #86efac;
+      --st-parcial-bg: #1f2530; --st-parcial-bd: #2a3340; --st-parcial-fg: #cbd5e1;
+      --st-consumido-bg: #2a2f37; --st-consumido-bd: #3a3f47; --st-consumido-fg: #9ca3af;
+    }
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);          /* 16px evita zoom iOS (RNF14) */
+    line-height: 1.5;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom));
+  }
+  h1, h2, h3 { margin: 0 0 var(--sp-3); font-weight: var(--fw-bold); }
+  h1 { font-size: var(--fs-2xl); }
+  h2 { font-size: var(--fs-xl); margin-top: var(--sp-8); }
+  h3 { font-size: var(--fs-lg); margin-top: var(--sp-6); }
+  p { margin: 0 0 var(--sp-3); color: var(--text-muted); }
+  code { background: var(--surface-2); padding: 2px 6px; border-radius: var(--radius-sm); font-size: var(--fs-sm); }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: var(--sp-4); }
+  @media (min-width: 768px) { .wrap { padding: var(--sp-6) var(--sp-8); } }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-5); margin: var(--sp-4) 0; box-shadow: var(--shadow-sm); }
+  .swatch-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+  .swatch { display: flex; flex-direction: column; gap: var(--sp-1); width: 120px; }
+  .swatch .chip { height: 56px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+  .swatch small { color: var(--text-muted); font-size: 12px; }
+
+  /* ============================================================
+     BOTÕES (tap >= 44px)
+     ============================================================ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+    min-height: var(--tap-min); padding: 0 var(--sp-4);
+    border-radius: var(--radius-md); border: 1px solid transparent;
+    font: inherit; font-weight: var(--fw-med); cursor: pointer; text-decoration: none;
+    background: var(--surface-2); color: var(--text);
+  }
+  .btn--primary { background: var(--primary); color: #fff; }
+  .btn--primary:hover { background: var(--primary-600); }
+  .btn--danger { background: var(--danger); color: #fff; }
+  .btn--ghost { background: transparent; border-color: var(--border); }
+  .btn--block { width: 100%; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+  /* ============================================================
+     CARD
+     ============================================================ */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-4); box-shadow: var(--shadow-sm); }
+  .card h3 { margin-top: 0; }
+  .metric { display: flex; flex-direction: column; gap: 2px; }
+  .metric .num { font-size: var(--fs-2xl); font-weight: var(--fw-bold); }
+  .metric .label { color: var(--text-muted); font-size: var(--fs-sm); }
+  .grid-cards { display: grid; gap: var(--sp-3); grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .grid-cards { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ============================================================
+     FORMULÁRIOS (§7.5: inputmode, sem type=number, destaque ativo)
+     ============================================================ */
+  .field { display: flex; flex-direction: column; gap: var(--sp-1); margin-bottom: var(--sp-4); }
+  .field label { font-size: var(--fs-sm); font-weight: var(--fw-med); }
+  .input, .select, .textarea {
+    min-height: var(--tap-min); padding: 0 var(--sp-3);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--surface); color: var(--text); font: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-50);
+  }
+  .textarea { min-height: 96px; padding: var(--sp-2) var(--sp-3); }
+
+  /* ============================================================
+     GRADE 2D (ARC-14: min-cell 40px, scroll horizontal, compacto <400)
+     ============================================================ */
+  .grade {
+    display: grid; gap: var(--sp-1);
+    grid-template-columns: repeat(var(--cols, 7), minmax(var(--grade-cell-min), 1fr));
+    grid-auto-rows: minmax(var(--grade-cell-min), auto);
+    overflow-x: auto; padding-bottom: var(--sp-2);
+    -webkit-overflow-scrolling: touch;
+  }
+  .grade-wrap { position: relative; }
+  .grade-wrap .hint { font-size: 12px; color: var(--text-muted); margin-bottom: var(--sp-2); }
+
+  .cell {
+    position: relative; min-width: var(--grade-cell-min); min-height: var(--grade-cell-min);
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;
+    border: 1px solid var(--st-disponivel-bd); border-radius: var(--radius-sm);
+    background: var(--st-disponivel-bg); color: var(--st-disponivel-fg);
+    cursor: pointer; user-select: none; padding: var(--sp-1);
+    font-size: 12px; text-align: center;
+  }
+  .cell .kg { font-weight: var(--fw-bold); font-size: 13px; }
+  .cell .pos { font-size: 10px; opacity: .8; }
+  .cell[data-status="reservado"] { border: 2px solid var(--st-reservado-bd); background: var(--surface); }
+  .cell[data-status="parcial"] { background: var(--st-parcial-bg); border-color: var(--st-parcial-bd); color: var(--st-parcial-fg); }
+  .cell[data-status="consumido"] { background: var(--st-consumido-bg); border-color: var(--st-consumido-bd); color: var(--st-consumido-fg); }
+  .cell[data-status="movido"] { opacity: var(--st-movido-opacity); }
+
+  /* Popover ao toque (não hover) — ARC-16 */
+  .cell[aria-expanded="true"] .popover { display: block; }
+  .popover {
+    display: none; position: absolute; z-index: 20; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg); padding: var(--sp-3); min-width: 160px; font-size: 12px; color: var(--text);
+  }
+
+  /* Liga — barra de cor à esquerda da célula */
+  .cell.liga::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--liga, var(--liga-sem-cor));
+  }
+
+  /* Modo compacto (< 400px): 1 coluna, lista por posição — ARC-14 */
+  @media (max-width: 399px) {
+    .grade.compact { grid-template-columns: 1fr; grid-auto-rows: auto; }
+    .grade.compact .cell { flex-direction: row; justify-content: space-between; min-height: var(--tap-min); }
+  }
+
+  /* ============================================================
+     BOTTOM-BAR (mobile) + SIDEBAR (md+)
+     ============================================================ */
+  .bottom-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-around; align-items: stretch;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);     /* respeita nav nativa */
+    height: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom));
+    z-index: 50;
+  }
+  .bottom-bar a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-width: var(--tap-min); color: var(--text-muted); text-decoration: none; font-size: 11px;
+  }
+  .bottom-bar a.active { color: var(--primary); }
+  .bottom-bar .ico { font-size: 20px; }
+  @media (min-width: 1024px) { .bottom-bar { display: none; } body { padding-bottom: 0; } }
+
+  .sidebar {
+    display: none; position: fixed; top: 0; bottom: 0; left: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--border); padding: var(--sp-4);
+  }
+  .sidebar h3 { font-size: var(--fs-md); }
+  .sidebar a { display: block; padding: var(--sp-3); border-radius: var(--radius-md); color: var(--text); text-decoration: none; }
+  .sidebar a.active { background: var(--primary-50); color: var(--primary-600); font-weight: var(--fw-med); }
+  @media (min-width: 1024px) {
+    .sidebar { display: block; }
+    .wrap { margin-left: var(--sidebar-w); }
+  }
+
+  /* ============================================================
+     TOAST (topo) + BOTTOM-SHEET (modal mobile)
+     ============================================================ */
+  .toast {
+    position: fixed; top: calc(var(--sp-3) + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--radius-pill); box-shadow: var(--shadow-lg); z-index: 100; font-size: var(--fs-sm);
+    display: none;
+  }
+  .toast.show { display: block; }
+  .toast--success { background: var(--success); color: #fff; }
+  .toast--danger { background: var(--danger); color: #fff; }
+
+  .sheet-backdrop {
+    position: fixed; inset: 0; background: rgba(16,24,40,.45); display: none; z-index: 90;
+  }
+  .sheet-backdrop.show { display: block; }
+  .bottom-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--sp-4) var(--sp-4) calc(var(--sp-4) + env(safe-area-inset-bottom));
+    box-shadow: var(--shadow-lg); transform: translateY(100%); transition: transform .25s ease; z-index: 95;
+    max-height: 80vh; overflow: auto;
+  }
+  .bottom-sheet.show { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: var(--radius-pill); margin: 0 auto var(--sp-4); }
+
+  /* ============================================================
+     FAB (ARC-17: safe-area, nunca margin negativo)
+     ============================================================ */
+  .fab {
+    position: fixed; right: var(--sp-4); bottom: calc(var(--bottom-bar-h) + var(--sp-3) + env(safe-area-inset-bottom));
+    width: 56px; height: 56px; border-radius: var(--radius-pill);
+    background: var(--primary); color: #fff; border: none; font-size: 28px; cursor: pointer;
+    box-shadow: var(--shadow-lg); z-index: 40;
+  }
+  @media (min-width: 1024px) { .fab { bottom: var(--sp-6); } }
+
+  /* Dashboard sem truncamento cego (ARC-15): scroll em vez de slice(0,6) */
+  .liga-list { max-height: 240px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .liga-list .row { display: flex; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border); }
+  .liga-list .row:last-child { border-bottom: none; }
+
+  .stack { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .hr { height: 1px; background: var(--border); border: 0; margin: var(--sp-4) 0; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar" aria-label="Navegação (desktop)">
+  <h3>PCP</h3>
+  <a class="active" href="#tokens">Início</a>
+  <a href="#tokens">Tokens</a>
+  <a href="#paleta">Paleta</a>
+  <a href="#componentes">Componentes</a>
+  <a href="#grade">Grade 2D</a>
+  <a href="#breakpoints">Breakpoints</a>
+</nav>
+
+<div class="wrap">
+
+  <h1>Design System — Plataforma PCP</h1>
+  <p>Referência visual única (PRD §7). Mobile-first, celular principal (360–430px). Convenções ARC-14/15/16/17 incorporadas.</p>
+
+  <!-- TOKENS -->
+  <section class="section" id="tokens">
+    <h2>Tokens</h2>
+    <p>Variáveis CSS em <code>:root</code>. Dark mode via <code>prefers-color-scheme</code> (RNF14).</p>
+    <div class="grid-cards">
+      <div class="card metric"><span class="num">16px</span><span class="label">fonte base (evita zoom iOS)</span></div>
+      <div class="card metric"><span class="num">44px</span><span class="label">tap target mínimo</span></div>
+      <div class="card metric"><span class="num">40px</span><span class="label">célula da grade mínima</span></div>
+    </div>
+  </section>
+
+  <!-- PALETA -->
+  <section class="section" id="paleta">
+    <h2>Paleta — Status da grade (§7.2)</h2>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:var(--st-disponivel-bg);border-color:var(--st-disponivel-bd)"></div><small>Disponível</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--surface);border:2px solid var(--st-reservado-bd)"></div><small>Reservado (borda)</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--st-parcial-bg);border-color:var(--st-parcial-bd)"></div><small>Parcial</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--st-consumido-bg);border-color:var(--st-consumido-bd)"></div><small>Consumido</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--st-disponivel-bg);opacity:var(--st-movido-opacity)"></div><small>Movido ao setor</small></div>
+    </div>
+
+    <h3>Paleta — Cores das ligas (§7.3)</h3>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:var(--liga-azul)"></div><small>azul</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-amarelo)"></div><small>amarelo</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-vermelho)"></div><small>vermelho</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-preto)"></div><small>preto</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-cinza)"></div><small>cinza</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-sem-cor)"></div><small>sem_cor</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-verde)"></div><small>verde</small></div>
+      <div class="swatch"><div class="chip" style="background:var(--liga-branco);border:1px solid var(--border)"></div><small>branco</small></div>
+    </div>
+  </section>
+
+  <!-- COMPONENTES -->
+  <section class="section" id="componentes">
+    <h2>Componentes</h2>
+
+    <h3>Botões</h3>
+    <div class="btn-row">
+      <button class="btn btn--primary" onclick="toast('Salvo')">Salvar</button>
+      <button class="btn btn--ghost">Cancelar</button>
+      <button class="btn btn--danger" onclick="toast('Estornado','danger')">Estornar</button>
+      <a class="btn btn--ghost" href="#">Link</a>
+    </div>
+
+    <h3>Card de métrica (balanço)</h3>
+    <div class="grid-cards">
+      <div class="card metric"><span class="num">1.250 kg</span><span class="label">No estoque</span></div>
+      <div class="card metric"><span class="num">980 kg</span><span class="label">Disponível</span></div>
+      <div class="card metric"><span class="num">270 kg</span><span class="label">Reservado</span></div>
+    </div>
+
+    <h3>Formulário (inputmode decimal, sem type=number)</h3>
+    <div class="field">
+      <label for="kg">Peso (kg)</label>
+      <input class="input" id="kg" type="text" inputmode="decimal" autocomplete="off" placeholder="0,000">
+    </div>
+    <div class="field">
+      <label for="barras">Barras</label>
+      <input class="input" id="barras" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+    </div>
+    <div class="field">
+      <label for="obs">Observação</label>
+      <textarea class="textarea" id="obs"></textarea>
+    </div>
+    <button class="btn btn--primary btn--block" onclick="toast('Registrado','success')">Registrar</button>
+
+    <h3>Dashboard — todas as ligas com scroll (ARC-15)</h3>
+    <div class="liga-list">
+      <div class="row"><span>azul</span><b>520 kg</b></div>
+      <div class="row"><span>amarelo</span><b>310 kg</b></div>
+      <div class="row"><span>vermelho</span><b>180 kg</b></div>
+      <div class="row"><span>preto</span><b>120 kg</b></div>
+      <div class="row"><span>cinza</span><b>60 kg</b></div>
+      <div class="row"><span>verde</span><b>40 kg</b></div>
+      <div class="row"><span>branco</span><b>20 kg</b></div>
+    </div>
+  </section>
+
+  <!-- GRADE 2D -->
+  <section class="section" id="grade">
+    <h2>Grade 2D (estoque)</h2>
+    <div class="grade-wrap">
+      <div class="hint">Toque uma célula p/ detalhes (não hover). Pinça p/ zoom. Célula nunca &lt; 40px.</div>
+      <div class="grade" style="--cols:7" id="grade">
+        <!-- células geradas por JS -->
+      </div>
+    </div>
+    <p style="margin-top:var(--sp-3)"><small>Em &lt; 400px o modo compacto mostra 1 coluna (lista por posição).</small></p>
+    <button class="btn btn--ghost" onclick="document.getElementById('grade').classList.toggle('compact')">Alternar modo compacto</button>
+  </section>
+
+  <!-- BREAKPOINTS -->
+  <section class="section" id="breakpoints">
+    <h2>Breakpoints (mobile-first, §7.4)</h2>
+    <div class="grid-cards">
+      <div class="card"><b>xs</b> 360–430px — alvo principal. Bottom-bar, grade c/ scroll.</div>
+      <div class="card"><b>sm</b> 431–767px — mesmo xs c/ respiro.</div>
+      <div class="card"><b>md</b> 768–1023px — sidebar colapsável.</div>
+      <div class="card"><b>lg</b> 1024px+ — sidebar fixa, layout completo.</div>
+      <div class="card"><b>xl</b> 1280px+ — painéis laterais.</div>
+    </div>
+    <hr class="hr">
+    <h3>Regras anti-regressão relevantes (§6.9)</h3>
+    <p><b>ARC-14</b> grade min-cell 40px, compacto &lt; 400px · <b>ARC-15</b> sem truncar ligas · <b>ARC-16</b> texto curto sem siglas · <b>ARC-17</b> FAB respeita safe-area.</p>
+  </section>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" aria-label="Adicionar" onclick="openSheet()">+</button>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM-SHEET -->
+<div class="sheet-backdrop" id="backdrop" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <h3>Novo apontamento</h3>
+  <div class="field"><label>Liga</label><select class="select"><option>azul</option><option>amarelo</option></select></div>
+  <div class="field"><label>Lote</label><select class="select"><option>L-001</option></select></div>
+  <div class="field"><label>Barras</label><input class="input" type="text" inputmode="numeric"></div>
+  <button class="btn btn--primary btn--block" onclick="closeSheet();toast('Criado','success')">Confirmar</button>
+</div>
+
+<!-- BOTTOM-BAR -->
+<nav class="bottom-bar" aria-label="Navegação (mobile)">
+  <a class="active" href="#"><span class="ico">▦</span>Estoque</a>
+  <a href="#"><span class="ico">↓</span>Entrada</a>
+  <a href="#"><span class="ico">⚙</span>Consumo</a>
+  <a href="#"><span class="ico">≡</span>Relatórios</a>
+  <a href="#"><span class="ico">⋯</span>Mais</a>
+</nav>
+
+<script>
+  // Gerar grade 7x3 com estados variados
+  (function () {
+    const g = document.getElementById('grade');
+    const statuses = ['disponivel','reservado','parcial','consumido','movido'];
+    const ligas = { 0:'--liga-azul', 1:'--liga-amarelo', 2:'--liga-vermelho' };
+    for (let i = 0; i < 21; i++) {
+      const c = document.createElement('button');
+      const st = statuses[i % statuses.length];
+      c.className = 'cell liga' + (st === 'movido' ? '' : '');
+      c.setAttribute('data-status', st);
+      c.style.setProperty('--liga', 'var(' + (ligas[i % 3]) + ')');
+      const x = (i % 7) + 1, y = Math.floor(i / 7) + 1;
+      c.innerHTML = '<span class="kg">' + (Math.random()*120|0) + 'kg</span>' +
+                    '<span class="pos">x' + x + '·y' + y + '</span>' +
+                    '<span class="popover">Status: ' + st + '<br>Barras: ' + (Math.random()*8|0) + '<br><b>Ver detalhe</b></span>';
+      c.addEventListener('click', () => {
+        g.querySelectorAll('.cell').forEach(el => el.removeAttribute('aria-expanded'));
+        c.setAttribute('aria-expanded', 'true');
+      });
+      g.appendChild(c);
+    }
+  })();
+
+  let toastTimer;
+  function toast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' toast--' + type : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.className = 'toast', 2200);
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+  function openSheet() {
+    document.getElementById('sheet').classList.add('show');
+    document.getElementById('backdrop').classList.add('show');
+  }
+  function closeSheet() {
+    document.getElementById('sheet').classList.remove('show');
+    document.getElementById('backdrop').classList.remove('show');
+  }
+</script>
+</body>
+</html>

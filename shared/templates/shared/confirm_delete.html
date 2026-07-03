@@ -1,0 +1,16 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Excluir · Cadastros{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>Excluir</h1></div>
+
+<section class="section">
+  <p>Confirmar a exclusão (soft delete) de <b>{{ object }}</b>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn--danger" type="submit">Excluir</button>
+    <a class="btn btn--ghost" href="{{ list_url }}">Cancelar</a>
+  </form>
+</section>
+{% endblock %}

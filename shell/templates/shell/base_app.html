@@ -1,0 +1,98 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="{% url 'manifest_json' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'icons/icon.svg' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon.svg' %}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>{% block title %}Plataforma PCP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="sidebar" aria-label="Navegação">
+  <h3>🏭 PCP</h3>
+  <div class="group">
+    <div class="group-label">Plataforma</div>
+    <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}">Início</a>
+    <a href="{% url 'accounts:profile' %}">Perfil</a>
+    {% if user.is_admin %}
+      <a href="{% url 'shell:module_perms' %}">Permissões</a>
+    {% endif %}
+    {% if user.is_staff %}
+      <a href="{% url 'admin:index' %}">Admin</a>
+    {% endif %}
+  </div>
+  {% if module_menu %}
+  <div class="group">
+    <div class="group-label">Módulos</div>
+    {% for m in module_menu %}
+      <a href="{% url m.url_name %}"><b>{{ m.label }}</b></a>
+      {% for item in m.items %}
+        <a href="{% url item.url_name %}" style="padding-left:var(--sp-6)">↳ {{ item.label }}</a>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if user.is_admin %}
+  <div class="group">
+    <div class="group-label">Cadastros</div>
+    <a href="{% url 'shared:setor_list' %}">Setores</a>
+    <a href="{% url 'shared:operador_list' %}">Operadores</a>
+    <a href="{% url 'shared:turno_list' %}">Turnos</a>
+    <a href="{% url 'shared:maquina_list' %}">Máquinas</a>
+  </div>
+  {% endif %}
+  <div class="group">
+    <form method="post" action="{% url 'accounts:logout' %}" style="margin-top:var(--sp-4)">
+      {% csrf_token %}
+      <button class="btn btn--ghost btn--block" type="submit">Sair</button>
+    </form>
+  </div>
+</nav>
+
+<main class="wrap">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast show toast--{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% endif %}" id="toast-{{ forloop.counter }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<nav class="bottom-bar" aria-label="Navegação (mobile)">
+  <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}"><span class="ico">▦</span>Início</a>
+  {% if user.is_admin %}
+    <a href="{% url 'shell:module_perms' %}"><span class="ico">🔒</span>Permissões</a>
+  {% endif %}
+  <a href="{% url 'accounts:profile' %}"><span class="ico">👤</span>Perfil</a>
+  {% if user.is_staff %}
+    <a href="{% url 'admin:index' %}"><span class="ico">⚙</span>Admin</a>
+  {% endif %}
+</nav>
+
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script>
+  // HTMX envia o token CSRF em todas as requisiças inseguras (DELETE/POST/etc.).
+  document.body.addEventListener("htmx:configRequest", function (e) {
+    var meta = document.querySelector("meta[name='csrf-token']");
+    if (meta) { e.detail.headers["X-CSRFToken"] = meta.content; }
+  });
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("{% url 'service_worker' %}").catch(function () {});
+    });
+  }
+  setTimeout(function () { document.querySelectorAll(".toast.show").forEach(function (t) { t.classList.remove("show"); }); }, 2500);
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

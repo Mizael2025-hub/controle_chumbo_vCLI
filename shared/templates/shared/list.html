@@ -1,0 +1,45 @@
+{% extends "shell/base_app.html" %}
+{% load shared_tags %}
+
+{% block title %}{{ title }} · Cadastros{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ title }}</h1>
+  <a class="btn btn--primary btn--sm" href="{{ create_url }}">+ Novo</a>
+</div>
+
+<section class="section">
+  {% if objects %}
+    <table class="data">
+      <thead>
+        <tr>
+          {% for f in fields %}<th>{{ f|capfirst }}</th>{% endfor %}
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in objects %}
+          <tr>
+            {% for f in fields %}<td>{{ obj|get_attr:f }}</td>{% endfor %}
+            <td>
+              <div class="row-actions">
+                <a class="btn btn--ghost btn--sm" href="{% url update_url_name obj.pk %}">Editar</a>
+                <form hx-post="{% url delete_url_name obj.pk %}" hx-confirm="Excluir este registro?" hx-target="closest tr" hx-swap="outerHTML" method="post" action="{% url delete_url_name obj.pk %}" style="display:inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn--danger btn--sm">Excluir</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">
+      <p>Nenhum registro ativo.</p>
+      <a class="btn btn--primary btn--sm" href="{{ create_url }}">+ Novo</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

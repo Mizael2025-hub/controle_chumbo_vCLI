@@ -1,0 +1,130 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: komotores_pcp
+      POSTGRES_USER: pcp
+      POSTGRES_PASSWORD: pcp
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pcp -d komotores_pcp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [komotores_pcp]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: pcp
+      RABBITMQ_DEFAULT_PASS: pcp
+      RABBITMQ_DEFAULT_VHOST: komotores_pcp
+    ports:
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks: [komotores_pcp]
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [komotores_pcp]
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://pcp:pcp@db:5432/komotores_pcp
+      CELERY_BROKER_URL: amqp://pcp:pcp@rabbitmq:5672/komotores_pcp
+      CELERY_RESULT_BACKEND: django-db
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: rediscache://redis:6379/1
+      DEBUG: "True"
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - .:/app
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks: [komotores_pcp]
+
+  celery_worker:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://pcp:pcp@db:5432/komotores_pcp
+      CELERY_BROKER_URL: amqp://pcp:pcp@rabbitmq:5672/komotores_pcp
+      CELERY_RESULT_BACKEND: django-db
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: rediscache://redis:6379/1
+    entrypoint: ["./worker-entrypoint.sh"]
+    command: ["celery", "-A", "core", "worker", "-l", "info"]
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [komotores_pcp]
+
+  celery_beat:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://pcp:pcp@db:5432/komotores_pcp
+      CELERY_BROKER_URL: amqp://pcp:pcp@rabbitmq:5672/komotores_pcp
+      CELERY_RESULT_BACKEND: django-db
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: rediscache://redis:6379/1
+    entrypoint: ["./worker-entrypoint.sh"]
+    command: ["celery", "-A", "core", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [komotores_pcp]
+
+volumes:
+  pg_data:
+  rabbitmq_data:
+  redis_data:
+  media_data:
+  static_data:
+
+networks:
+  komotores_pcp:
+    driver: bridge

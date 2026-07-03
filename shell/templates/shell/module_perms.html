@@ -1,0 +1,44 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Permissões por módulo · Plataforma PCP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Permissões por módulo</h1>
+  <a class="btn btn--ghost btn--sm" href="{% url 'admin:accounts_modulepermission_changelist' %}">Gerenciar no admin</a>
+</div>
+
+{% if not module_slugs %}
+  <section class="section empty">
+    <h2>Nenhum módulo instalado</h2>
+    <p>Quando houver módulos, defina aqui o papel de cada usuário em cada módulo.</p>
+  </section>
+{% endif %}
+
+<section class="section">
+  <h3>Usuários</h3>
+  <table class="data">
+    <thead>
+      <tr><th>Nome</th><th>E-mail</th><th>Função global</th><th>Superuser</th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.name|default:"—" }}</td>
+          <td>{{ u.email }}</td>
+          <td><span class="badge {% if u.is_admin %}badge--ok{% endif %}">{{ u.get_role_display|default:u.role }}</span></td>
+          <td>{% if u.is_superuser %}✓{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if is_paginated %}
+  <div class="row-actions" style="justify-content:center;margin-top:var(--sp-4)">
+    {% if page_obj.has_previous %}<a class="btn btn--ghost btn--sm" href="?page={{ page_obj.previous_page_number }}">‹ Anterior</a>{% endif %}
+    <span class="muted" style="align-self:center">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn--ghost btn--sm" href="?page={{ page_obj.next_page_number }}">Próxima ›</a>{% endif %}
+  </div>
+{% endif %}
+{% endblock %}

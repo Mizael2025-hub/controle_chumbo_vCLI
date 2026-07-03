@@ -1,0 +1,43 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Início · Plataforma PCP{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Olá, {{ user.name|default:user.email }}</h1>
+  <span class="badge {% if user.is_admin %}badge--ok{% endif %}">{% if user.is_admin %}Administrador{% else %}Operador{% endif %}</span>
+</div>
+
+{% if modules %}
+  <section class="section">
+    <h2>Módulos</h2>
+    <div class="grid-cards">
+      {% for m in modules %}
+        <a class="card" href="{% url m.url_name %}" style="text-decoration:none;color:inherit">
+          <h3>{{ m.label }}</h3>
+          <p>Acessar módulo {{ m.slug }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% else %}
+  <section class="section empty">
+    <h2>Nenhum módulo instalado</h2>
+    <p>A plataforma está pronta para receber módulos (Controle de Chumbo, Óxido, Borra, ...).</p>
+  </section>
+{% endif %}
+
+{% if widgets %}
+  <section class="section">
+    <h2>Painel agregado</h2>
+    <div class="grid-cards">
+      {% for w in widgets %}
+        <div class="card">
+          <h3>{{ w.title }}</h3>
+          {{ w.html|safe }}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

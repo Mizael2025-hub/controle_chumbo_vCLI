@@ -1,0 +1,38 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="{% url 'manifest_json' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'icons/icon.svg' %}">
+  <title>Entrar · Plataforma PCP</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card card">
+    <h1>🏭 PCP</h1>
+    <p style="text-align:center">Plataforma de Produção e Controle</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">E-mail</label>
+        <input class="input" type="email" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+               value="{{ form.username.value|default:'' }}" autocomplete="email" autofocus>
+        {% if form.username.errors %}<ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Senha</label>
+        <input class="input" type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+               autocomplete="current-password">
+        {% if form.password.errors %}<ul class="errorlist">{% for e in form.password.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      <button class="btn btn--primary btn--block" type="submit">Entrar</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

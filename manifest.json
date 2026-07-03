@@ -1,0 +1,21 @@
+{
+  "name": "Plataforma PCP",
+  "short_name": "PCP",
+  "description": "Chão de fábrica digital — Controle de Chumbo",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f14",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
