@@ -9,4 +9,5 @@ urlpatterns = [
     path("ligas/", include("modules.chumbo.ligas.urls")),
     path("destinos/", include("modules.chumbo.destinos.urls")),
     path("modelos/", include("modules.chumbo.modelos.urls")),
+    path("lotes/", include("modules.chumbo.lotes.urls")),
 ]

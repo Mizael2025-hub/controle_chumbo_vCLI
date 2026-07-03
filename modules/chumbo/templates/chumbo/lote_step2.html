@@ -1,0 +1,77 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Grade do lote · Chumbo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Receber chumbo · Etapa 2/2</h1>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:lote_create' %}">← Voltar</a>
+</div>
+
+<section class="section">
+  <div class="lote-summary">
+    <span><b>Liga:</b> {{ s1.liga_nome }}</span>
+    <span><b>Lote:</b> {{ s1.numero_lote }}</span>
+    <span><b>Grade:</b> {{ cols }}×{{ rows }}</span>
+    <span><b>Total:</b> {{ s1.peso_inicial_kg }} kg · {{ s1.barras_iniciais }} barras</span>
+  </div>
+
+  <form method="post" x-data="gradeSoma('{{ s1.peso_inicial_kg }}', {{ s1.barras_iniciais }})">
+    {% csrf_token %}
+    <div class="grade-meta">
+      <span class="badge" :class="somaOkKg ? 'badge--ok' : 'badge--danger'">kg: <b x-text="somaKg"></b> / {{ s1.peso_inicial_kg }}</span>
+      <span class="badge" :class="somaOkBarras ? 'badge--ok' : 'badge--danger'">barras: <b x-text="somaBarras"></b> / {{ s1.barras_iniciais }}</span>
+    </div>
+
+    <div class="grade-wrap">
+      <div class="grade" style="grid-template-columns: repeat({{ cols }}, minmax(40px, 78px));">
+        {% for row in cells %}
+          {% for cell in row %}
+            <div class="grade-cell grade-cell--empty">
+              <div class="grade-pos">x{{ cell.x }}·y{{ cell.y }}</div>
+              {% for e in cell.peso.errors %}<span class="help">{{ e }}</span>{% endfor %}
+              {{ cell.peso }}
+              {% for e in cell.barras.errors %}<span class="help">{{ e }}</span>{% endfor %}
+              {{ cell.barras }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    {% endif %}
+    <div class="btn-row" style="margin-top:var(--sp-4)">
+      <button class="btn btn--primary" type="submit">Confirmar lote</button>
+      <a class="btn btn--ghost" href="{% url 'chumbo:lote_create' %}">Voltar</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+<script>
+function gradeSoma(totalKg, totalBarras) {
+  return {
+    totalKg: totalKg, totalBarras: totalBarras,
+    somaKg: "0", somaBarras: 0,
+    somaOkKg: false, somaOkBarras: false,
+    init() { this.calcular(); this.$watch = null; document.querySelector('.grade').addEventListener('input', () => this.calcular()); },
+    calcular() {
+      var kgs = 0, bars = 0;
+      document.querySelectorAll('.grade input').forEach(function (inp) {
+        var name = inp.getAttribute('name') || '';
+        if (name.indexOf('peso_') === 0) { var v = parseFloat((inp.value || '0').replace(',', '.')); if (!isNaN(v)) kgs += v; }
+        if (name.indexOf('barras_') === 0) { var v = parseInt(inp.value || '0', 10); if (!isNaN(v)) bars += v; }
+      });
+      this.somaKg = kgs.toString();
+      this.somaBarras = bars;
+      this.somaOkKg = Math.abs(kgs - parseFloat(this.totalKg)) < 0.0005;
+      this.somaOkBarras = (bars === parseInt(this.totalBarras, 10));
+    }
+  };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "shell/base_app.html" %}
+
+{% block title %}Estoque · Chumbo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Estoque</h1>
+  {% if request.user.is_admin %}
+    <a class="btn btn--primary btn--sm" href="{% url 'chumbo:lote_create' %}">+ Entrada</a>
+  {% endif %}
+</div>
+
+<section class="section">
+  {% if saldos %}
+    <table class="data">
+      <thead>
+        <tr><th>Liga</th><th>Lote</th><th>Chegada</th><th>Grade</th><th>Saldo kg</th><th>Saldo barras</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for lote, kg, barras in saldos %}
+          <tr>
+            <td><span class="liga-dot liga-{{ lote.liga.chave_cor }}"></span>{{ lote.liga }}</td>
+            <td>{{ lote.numero_lote }}</td>
+            <td>{{ lote.data_chegada|date:"d/m/Y" }}</td>
+            <td>{{ lote.colunas_grade }}×{{ lote.linhas_grade }}</td>
+            <td>{{ kg|floatformat:3 }}</td>
+            <td>{{ barras }}</td>
+            <td><a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque_lote' lote.pk %}">Ver grade</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">
+      <p>Nenhum lote ativo.</p>
+      {% if request.user.is_admin %}
+        <a class="btn btn--primary btn--sm" href="{% url 'chumbo:lote_create' %}">+ Entrada</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

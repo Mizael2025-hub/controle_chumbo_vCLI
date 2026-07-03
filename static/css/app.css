@@ -156,3 +156,55 @@ table.data tr:hover td { background: var(--surface-2); }
 .stack { display: flex; flex-direction: column; gap: var(--sp-3); }
 .hr { height: 1px; background: var(--border); border: 0; margin: var(--sp-4) 0; }
 .muted { color: var(--text-muted); }
+
+/* ============================================================
+   Sprint 3 — Grade 2D + ligas (ARC-14: min-cell 40px, scroll)
+   ============================================================ */
+.liga-dot { display:inline-block; width:12px; height:12px; border-radius:50%; vertical-align:middle; margin-right:var(--sp-2); border:1px solid var(--border); }
+.liga-azul { background: var(--liga-azul); } .liga-amarelo { background: var(--liga-amarelo); }
+.liga-vermelho { background: var(--liga-vermelho); } .liga-preto { background: var(--liga-preto); }
+.liga-cinza { background: var(--liga-cinza); } .liga-sem_cor { background: var(--liga-sem_cor); }
+.liga-verde { background: var(--liga-verde); } .liga-branco { background: var(--liga-branco); }
+
+.liga-list { display:flex; flex-direction:column; gap:var(--sp-2); max-height: 320px; overflow:auto; }
+.liga-row { display:flex; align-items:center; gap:var(--sp-2); padding:var(--sp-2) var(--sp-3); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text); }
+.liga-row b { margin-left:auto; }
+.liga-row small { color: var(--text-muted); font-size:12px; }
+
+.lote-summary { display:flex; flex-wrap:wrap; gap:var(--sp-3); margin-bottom:var(--sp-4); font-size:var(--fs-sm); }
+.lote-summary span { background: var(--surface-2); padding:var(--sp-1) var(--sp-3); border-radius: var(--radius-pill); }
+.grade-meta { display:flex; gap:var(--sp-2); flex-wrap:wrap; margin-bottom: var(--sp-3); }
+.badge--danger { background: var(--danger); color:#fff; }
+
+.grade-wrap { overflow:auto; -webkit-overflow-scrolling:touch; padding: var(--sp-2) 0 var(--sp-4); max-width:100%; }
+.grade { display:grid; gap:var(--sp-1); grid-auto-rows: minmax(64px, auto); }
+.grade-cell {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-width: var(--grade-cell-min); min-height: var(--grade-cell-min);
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  background: var(--surface); padding:2px; gap:1px; text-align:center;
+}
+.grade-cell input { width:100%; min-height:32px; padding:0 4px; font-size:12px; border:1px solid var(--border); border-radius:6px; text-align:center; background:var(--surface); color:var(--text); }
+.grade-cell input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-50); }
+.grade-pos { font-size:10px; color: var(--text-muted); }
+.grade-kg { font-size:12px; font-weight: var(--fw-med); }
+.grade-bar { font-size:11px; color: var(--text-muted); }
+.grade-cell--vazio { opacity:.4; }
+.grade-cell--vazio .grade-pos { color: var(--text-muted); }
+
+.grade-cell.st-disponivel { background: var(--st-disponivel-bg); border-color: var(--st-disponivel-bd); color: var(--st-disponivel-fg); }
+.grade-cell.st-reservado { border:2px solid var(--st-reservado-bd); }
+.grade-cell.st-parcial { background: var(--st-parcial-bg); border-color: var(--st-parcial-bd); color: var(--st-parcial-fg); }
+.grade-cell.st-consumido { background: var(--st-consumido-bg); border-color: var(--st-consumido-bd); color: var(--st-consumido-fg); opacity:.75; }
+button.grade-cell { cursor:pointer; font:inherit; min-height: var(--tap-min); }
+button.grade-cell.grade-cell--active { box-shadow: 0 0 0 3px var(--primary); }
+
+.grade--compact { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
+.grade--compact .grade-cell { flex-direction:row; justify-content:space-between; min-height: var(--tap-min); }
+
+.grade-detail { margin-top: var(--sp-4); }
+.detail-card { border:1px solid var(--border); border-radius:var(--radius-md); padding: var(--sp-3); background: var(--surface-2); margin-bottom: var(--sp-2); }
+.grade-toolbar { display:flex; gap:var(--sp-2); align-items:center; margin-bottom: var(--sp-2); flex-wrap:wrap; }
+.metrics-row { display:grid; grid-template-columns: 1fr; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+@media (min-width: 640px) { .metrics-row { grid-template-columns: repeat(3, 1fr); } }
+[x-cloak] { display:none !important; }

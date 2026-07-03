@@ -9,18 +9,34 @@
 </div>
 
 <section class="section">
+  <h2>Operação</h2>
+  <div class="grid-cards">
+    <a class="card" href="{% url 'chumbo:estoque' %}" style="text-decoration:none;color:inherit">
+      <h3>Estoque</h3><p>Lotes e grade 2D do chão de fábrica (RF10-RF17)</p>
+    </a>
+    {% if request.user.is_admin %}
+    <a class="card" href="{% url 'chumbo:lote_create' %}" style="text-decoration:none;color:inherit">
+      <h3>Entrada</h3><p>Receber chumbo e montar a grade (RF20-RF25)</p>
+    </a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
   <h2>Cadastros do módulo</h2>
   <div class="grid-cards">
+    {% if request.user.is_admin %}
     <a class="card" href="{% url 'chumbo:ligas_list' %}" style="text-decoration:none;color:inherit">
       <h3>Ligas</h3><p>Cadastrar ligas e cores (RF81)</p>
     </a>
     <a class="card" href="{% url 'chumbo:destinos_list' %}" style="text-decoration:none;color:inherit">
       <h3>Destinos</h3><p>Destinos de saída (RF83)</p>
     </a>
-    {% if request.user.is_admin %}
     <a class="card" href="{% url 'chumbo:modelos_list' %}" style="text-decoration:none;color:inherit">
       <h3>Modelos</h3><p>Modelos de produto (RF87)</p>
     </a>
+    {% else %}
+    <p class="muted">Cadastros restritos a administradores do módulo.</p>
     {% endif %}
   </div>
 </section>
