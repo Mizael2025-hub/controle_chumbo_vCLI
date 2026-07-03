@@ -6,41 +6,34 @@
 <div class="page-header">
   <h1><span class="liga-dot liga-{{ liga_cor }}"></span>{{ lote }}</h1>
   <div class="btn-row">
-    <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
+    <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}"><i data-lucide="arrow-left"></i> Estoque</a>
     {% if request.user.is_admin %}
-    <button class="btn btn--ghost btn--sm" x-show="!modoDrag" @click="modoDrag=true">✋ Remanejar (drag)</button>
-    <button class="btn btn--primary btn--sm" x-show="modoDrag" @click="modoDrag=false; sel=null">✓ Concluir remanejamento</button>
+    <button class="btn btn--ghost btn--sm" x-show="!modoDrag" @click="entrarModoDrag()"><i data-lucide="move"></i> Remanejar</button>
+    <button class="btn btn--primary btn--sm" x-show="modoDrag" @click="sairModoDrag()" style="display:none"><i data-lucide="check"></i> Concluir</button>
     {% endif %}
   </div>
 </div>
 
 <section class="section" x-data="gradeOperacional({
     piles: {{ piles_json|safe }},
-    is_admin: {% if request.user.is_admin %}true{% else %}false{% endif %}
+    is_admin: {% if request.user.is_admin %}true{% else %}false{% endif %},
+    setores: {{ setores_json|safe }}
   })" x-init="init()">
 
   <div class="metrics-row">
-    <div class="metric"><span class="label">No estoque</span><span class="num">{{ estoque_kg|floatformat:3 }} kg</span><small>{{ estoque_barras }} barras</small></div>
-    <div class="metric"><span class="label">Disponível</span><span class="num">{{ disponivel_kg|floatformat:3 }} kg</span><small>{{ disponivel_barras }} barras</small></div>
-    <div class="metric"><span class="label">Reservado</span><span class="num">{{ reservado_kg|floatformat:3 }} kg</span><small>{{ reservado_barras }} barras</small></div>
+    <div class="metric"><span class="label">No estoque</span><span class="num">{{ estoque_kg|floatformat:1 }} kg</span><small>{{ estoque_barras }} barras</small></div>
+    <div class="metric"><span class="label">Disponível</span><span class="num">{{ disponivel_kg|floatformat:1 }} kg</span><small>{{ disponivel_barras }} barras</small></div>
+    <div class="metric"><span class="label">Reservado</span><span class="num">{{ reservado_kg|floatformat:1 }} kg</span><small>{{ reservado_barras }} barras</small></div>
   </div>
-
-  <div class="lote-summary">
-    <span><b>Ref. barra:</b> {{ lote.peso_barra_ref_kg|floatformat:3 }} kg</span>
-    <span><b>Cap. por monte:</b> {{ lote.capacidade_montes }} barras</span>
-    <span class="muted" style="font-size:var(--fs-sm)">valores informativos · x = coluna · y = empilhamento (0=chão)</span>
-  </div>
-
-  <template x-if="modoDrag && is_admin">
-    <div class="toast show toast--success" style="display:block; position:static; transform:none; box-shadow:none; padding:var(--sp-3); margin-bottom:var(--sp-3); border-radius:var(--radius-md)">
-      Modo remanejamento ativo: arraste um monte sobre uma célula vazia para mover. Preserva estado (kg/barras/status/reserva).
-    </div>
-  </template>
 
   <div class="grade-toolbar">
-    <button class="btn btn--ghost btn--sm" @click="$refs.g.classList.toggle('grade--compact')">Modo compacto</button>
-    <span class="muted" style="font-size:var(--fs-sm)" x-text="modoDrag ? 'Arraste os montes' : 'Toque numa célula para ver detalhes e operar'"></span>
+    <button class="btn btn--ghost btn--sm" @click="$refs.g.classList.toggle('grade--compact')"><i data-lucide="rows-3"></i> Compacto</button>
+    <span class="muted" style="font-size:var(--fs-sm)" x-text="modoDrag ? 'Arraste um monte sobre uma célula vazia' : 'Toque: detalhes · Toque longo (admin): remanejar'"></span>
   </div>
+
+  <template x-if="modoDrag">
+    <div class="drag-banner"><i data-lucide="move"></i> Modo remanejamento ativo — arraste os montes. Estado (peso/barras/status/reserva) é preservado.</div>
+  </template>
 
   <div class="grade-wrap">
     <div class="grade" ref="g" style="grid-template-columns: repeat({{ cols }}, minmax(40px, 78px));">
@@ -51,22 +44,26 @@
             <button class="grade-cell st-{{ p.status|lower }}" type="button"
                     :class="sel === {{ p.pk }} ? 'grade-cell--active' : ''"
                     @click="sel = {{ p.pk }}"
-                    :draggable="modoDrag ? 'true' : 'false'"
+                    draggable="true"
+                    @dragstart="iniciarDrag({{ p.pk }}, {{ cell.x }}, {{ cell.y }}, $event)"
+                    @dragend="fimDrag()"
                     @drop.prevent="soltar({{ cell.x }}, {{ cell.y }})"
                     @dragover.prevent
-                    @dragstart="iniciarDrag({{ p.pk }}, {{ cell.x }}, {{ cell.y }}, $event)"
+                    @touchstart="inicioToque($event, {{ p.pk }}, {{ cell.x }}, {{ cell.y }})"
+                    @touchend="fimToque($event, {{ p.pk }}, {{ cell.x }}, {{ cell.y }})"
                     style="position:relative">
               <span class="grade-pos">x{{ cell.x }}·y{{ cell.y }}</span>
               <span class="grade-kg">{{ p.peso_atual_kg|floatformat:1 }}kg</span>
               <span class="grade-bar">{{ p.barras_atuais }}b</span>
-              {% if p.status == 'RESERVADO' %}<span class="grade-tag">R</span>{% endif %}
-              {% if p.status == 'PARCIAL' %}<span class="grade-tag">P</span>{% endif %}
+              {% if p.status == 'RESERVADO' %}<span class="grade-tag" title="Reservado">R</span>{% endif %}
+              {% if p.status == 'PARCIAL' %}<span class="grade-tag" title="Parcial">P</span>{% endif %}
             </button>
             {% endwith %}
           {% else %}
             <div class="grade-cell grade-cell--vazio"
                  @drop.prevent="soltar({{ cell.x }}, {{ cell.y }})"
-                 @dragover.prevent>
+                 @dragover.prevent
+                 @click="sel=null">
               <span class="grade-pos">x{{ cell.x }}·y{{ cell.y }}</span>
             </div>
           {% endif %}
@@ -75,29 +72,94 @@
     </div>
   </div>
 
+  <!-- Painel de detalhe + ações rápidas -->
   <div class="grade-detail" x-show="sel !== null && !modoDrag" x-cloak>
     <template x-for="p in piles" :key="p.pk">
       <div x-show="sel === p.pk" class="detail-card">
-        <h3 x-text="'Monte ' + p.pos"></h3>
-        <p><b>Status:</b> <span x-text="p.status"></span> · <b>Local:</b> <span x-text="p.local"></span></p>
-        <p><b>Saldo:</b> <span x-text="p.kg"></span> kg · <span x-text="p.barras"></span> barras</p>
+        <div class="detail-head">
+          <h3><i data-lucide="package"></i> Monte <span x-text="p.pos"></span></h3>
+          <button class="btn btn--ghost btn--sm" @click="sel = null"><i data-lucide="x"></i></button>
+        </div>
+        <div class="detail-grid">
+          <div><span class="muted">Status</span><b x-text="p.status"></b></div>
+          <div><span class="muted">Local</span><b x-text="p.local"></b></div>
+          <div><span class="muted">Peso</span><b x-text="p.kg + ' kg'"></b></div>
+          <div><span class="muted">Barras</span><b x-text="p.barras"></b></div>
+        </div>
         {% if request.user.is_admin %}
-        <div class="btn-row" style="margin-top:var(--sp-2)">
-          <a class="btn btn--primary btn--sm" :href="p.urlReserva">Reservar</a>
-          <a class="btn btn--ghost btn--sm" :href="p.urlMover">Mover setor</a>
-          <a class="btn btn--ghost btn--sm" :href="p.urlSplit">Split</a>
-          <a class="btn btn--ghost btn--sm" :href="p.urlEventos">Eventos</a>
-          <form method="post" :action="p.urlDevolver" style="display:inline">
-            {% csrf_token %}
-            <button class="btn btn--ghost btn--sm" type="submit">Devolver</button>
-          </form>
+        <div class="detail-actions">
+          <button class="btn btn--ghost btn--sm" @click="abrirModal('reservar', p)"><i data-lucide="bookmark"></i> Reservar</button>
+          {% if p.status == 'RESERVADO' %}
+          <button class="btn btn--ghost btn--sm" @click="cancelarReserva(p)"><i data-lucide="bookmark-x"></i> Cancelar reserva</button>
+          {% endif %}
+          {% if p.local == 'Setor' %}
+          <button class="btn btn--ghost btn--sm" @click="devolver(p)"><i data-lucide="corner-up-left"></i> Devolver</button>
+          {% else %}
+          <button class="btn btn--ghost btn--sm" @click="abrirModal('mover', p)"><i data-lucide="truck"></i> Mover setor</button>
+          {% endif %}
+          <button class="btn btn--ghost btn--sm" @click="abrirModal('split', p)"><i data-lucide="split"></i> Split</button>
+          <a class="btn btn--ghost btn--sm" :href="p.urlEventos"><i data-lucide="history"></i> Eventos</a>
         </div>
         {% endif %}
       </div>
     </template>
-    <button class="btn btn--ghost btn--sm" @click="sel = null" style="margin-top:var(--sp-3)">Fechar</button>
   </div>
 </section>
+
+<!-- Modais contextuais -->
+<template x-if="modal === 'reservar'">
+  <div class="modal-overlay" @click.self="fecharModal()" x-transition>
+    <div class="modal-card">
+      <div class="modal-head"><h3><i data-lucide="bookmark"></i> Reservar monte</h3><button @click="fecharModal()" class="icon-btn"><i data-lucide="x"></i></button></div>
+      <p class="muted" x-text="'Monte ' + alvo?.pos + ' · ' + alvo?.kg + ' kg · ' + alvo?.barras + ' barras'"></p>
+      <div class="field"><label>Reservado para</label><input class="input" type="text" x-model="form.reservado_para" placeholder="Destino/setor"></div>
+      <div class="field"><label>Setor (opcional)</label>
+        <select class="select" x-model="form.setor_id">
+          <option value="">— nenhum —</option>
+          <template x-for="s in setores" :key="s.id"><option :value="s.id" x-text="s.nome"></option></template>
+        </select>
+      </div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn--ghost btn--sm" @click="fecharModal()">Cancelar</button>
+        <button class="btn btn--primary btn--sm" @click="submitReserva()"><i data-lucide="check"></i> Confirmar</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template x-if="modal === 'mover'">
+  <div class="modal-overlay" @click.self="fecharModal()" x-transition>
+    <div class="modal-card">
+      <div class="modal-head"><h3><i data-lucide="truck"></i> Mover ao setor</h3><button @click="fecharModal()" class="icon-btn"><i data-lucide="x"></i></button></div>
+      <p class="muted" x-text="'Monte ' + alvo?.pos + ' · ' + alvo?.kg + ' kg'"></p>
+      <div class="field"><label>Setor de destino</label>
+        <select class="select" x-model="form.setor_id">
+          <template x-for="s in setores" :key="s.id"><option :value="s.id" x-text="s.nome"></option></template>
+        </select>
+      </div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn--ghost btn--sm" @click="fecharModal()">Cancelar</button>
+        <button class="btn btn--primary btn--sm" @click="submitMover()"><i data-lucide="check"></i> Mover</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template x-if="modal === 'split'">
+  <div class="modal-overlay" @click.self="fecharModal()" x-transition>
+    <div class="modal-card">
+      <div class="modal-head"><h3><i data-lucide="split"></i> Split (movimentação parcial)</h3><button @click="fecharModal()" class="icon-btn"><i data-lucide="x"></i></button></div>
+      <p class="muted" x-text="'Origem ' + alvo?.pos + ' · ' + alvo?.kg + ' kg · ' + alvo?.barras + ' barras'"></p>
+      <div class="field"><label>Barras do novo monte</label><input class="input" type="text" inputmode="numeric" x-model="form.barras"></div>
+      <div class="field"><label>Peso do novo monte (kg)</label><input class="input" type="text" inputmode="decimal" x-model="form.peso_kg"></div>
+      <p class="muted" style="font-size:var(--fs-sm)">O novo monte é criado em x=99 (posição virtual).</p>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn--ghost btn--sm" @click="fecharModal()">Cancelar</button>
+        <button class="btn btn--primary btn--sm" @click="submitSplit()"><i data-lucide="check"></i> Criar split</button>
+      </div>
+    </div>
+  </div>
+</template>
 {% endblock %}
 
 {% block scripts %}
@@ -106,38 +168,86 @@
 function gradeOperacional(ctx) {
   return {
     piles: ctx.piles || [],
+    setores: ctx.setores || [],
     is_admin: ctx.is_admin || false,
     sel: null,
     modoDrag: false,
     dragPile: null,
     dragDe: null,
+    toqueTimer: null,
+    toqueLongo: false,
+    modal: null,
+    alvo: null,
+    form: { reservado_para:'', setor_id:'', barras:'', peso_kg:'' },
     init() {},
-    iniciarDrag(pk, x, y, ev) {
-      this.dragPile = pk;
-      this.dragDe = {x: x, y: y};
-      if (ev && ev.dataTransfer) { ev.dataTransfer.setData('text/plain', String(pk)); }
+    refreshIcons(){ if (window.lucide) window.lucide.createIcons(); },
+    entrarModoDrag(){ this.modoDrag = true; this.sel = null; this.$nextTick(() => this.refreshIcons()); },
+    sairModoDrag(){ this.modoDrag = false; this.dragPile = null; this.dragDe = null; this.$nextTick(() => this.refreshIcons()); },
+    iniciarDrag(pk, x, y, ev){
+      if (!this.modoDrag) { ev.preventDefault(); return; }
+      this.dragPile = pk; this.dragDe = {x:x, y:y};
+      if (ev && ev.dataTransfer) { ev.dataTransfer.setData('text/plain', String(pk)); ev.dataTransfer.effectAllowed = 'move'; }
     },
-    async soltar(nx, ny) {
+    fimDrag(){ /* limpa visual */ },
+    async soltar(nx, ny){
       if (!this.modoDrag || !this.dragPile) return;
-      if (this.dragDe && this.dragDe.x === nx && this.dragDe.y === ny) {
-        this.dragPile = null; this.dragDe = null; return;
-      }
-      var fd = new FormData();
-      fd.append('csrfmiddlewaretoken', document.querySelector('meta[name="csrf-token"]').content);
-      fd.append('x', nx); fd.append('y', ny);
-      var url = '/chumbo/montes/remanejar/' + this.dragPile + '/';
-      try {
-        var res = await fetch(url, {method:'POST', body: fd, credentials:'same-origin'});
-        var data = await res.json();
-        if (data.ok) {
-          window.location.reload();
-        } else {
-          alert(data.error || 'Falha ao remanejar.');
-        }
-      } catch (e) {
-        alert('Erro de rede: ' + e.message);
-      }
+      if (this.dragDe && this.dragDe.x === nx && this.dragDe.y === ny) { this.dragPile = null; this.dragDe = null; return; }
+      var pk = this.dragPile;
       this.dragPile = null; this.dragDe = null;
+      await this.post('/chumbo/montes/remanejar/' + pk + '/', { x:nx, y:ny });
+    },
+    inicioToque(ev, pk, x, y){
+      this.toqueLongo = false;
+      this.toqueTimer = setTimeout(() => {
+        this.toqueLongo = true;
+        if (this.is_admin) { navigator.vibrate && navigator.vibrate(20); this.entrarModoDrag(); }
+      }, 450);
+    },
+    fimToque(ev, pk, x, y){
+      clearTimeout(this.toqueTimer);
+      if (!this.toqueLongo && !this.modoDrag) { this.sel = pk; }
+      this.toqueLongo = false;
+    },
+    abrirModal(nome, p){
+      this.alvo = p; this.modal = nome;
+      this.form = { reservado_para:'', setor_id:'', barras:'', peso_kg:'' };
+      this.$nextTick(() => this.refreshIcons());
+    },
+    fecharModal(){ this.modal = null; this.alvo = null; },
+    csrf(){
+      var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : '';
+    },
+    async post(url, dados){
+      var fd = new FormData();
+      fd.append('csrfmiddlewaretoken', this.csrf());
+      for (var k in dados) fd.append(k, dados[k]);
+      try {
+        var res = await fetch(url, { method:'POST', body:fd, credentials:'same-origin' });
+        var ct = res.headers.get('content-type') || '';
+        if (ct.indexOf('json') >= 0) {
+          var data = await res.json();
+          if (data.ok) { window.location.reload(); return; }
+          alert(data.error || 'Falha na operação.');
+        } else {
+          window.location.reload();
+        }
+      } catch (e) { alert('Erro de rede: ' + e.message); }
+    },
+    submitReserva(){
+      if (!this.form.reservado_para) { alert('Informe para quem reservar.'); return; }
+      var fd = { reservado_para:this.form.reservado_para };
+      if (this.form.setor_id) fd.setor = this.form.setor_id;
+      this.post('/chumbo/montes/reservar/' + this.alvo.pk + '/', fd);
+    },
+    cancelarReserva(p){ if (confirm('Cancelar reserva do monte ' + p.pos + '?')) this.post('/chumbo/montes/reservar/' + p.pk + '/cancelar/', {}); },
+    devolver(p){ if (confirm('Devolver monte ' + p.pos + ' ao almoxarifado? Reserva preservada.')) this.post('/chumbo/montes/mover/' + p.pk + '/devolver/', {}); },
+    submitMover(){
+      if (!this.form.setor_id) { alert('Selecione o setor.'); return; }
+      this.post('/chumbo/montes/mover/' + this.alvo.pk + '/', { setor:this.form.setor_id });
+    },
+    submitSplit(){
+      if (!this.form.barras || !this.form.peso_kg) { alert('Informe barras e peso.'); return; }
+      this.post('/chumbo/montes/mover/' + this.alvo.pk + '/split/', { barras:this.form.barras, peso_kg:this.form.peso_kg });
     }
   };
 }

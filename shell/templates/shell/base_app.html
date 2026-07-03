@@ -18,16 +18,16 @@
 <body>
 
 <nav class="sidebar" aria-label="Navegação">
-  <h3>🏭 PCP</h3>
+  <h3 class="brand"><i data-lucide="layers"></i> PCP</h3>
   <div class="group">
     <div class="group-label">Plataforma</div>
-    <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}">Início</a>
-    <a href="{% url 'accounts:profile' %}">Perfil</a>
+    <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}"><i data-lucide="layout-dashboard"></i> Início</a>
+    <a href="{% url 'accounts:profile' %}"><i data-lucide="user"></i> Perfil</a>
     {% if user.is_admin %}
-      <a href="{% url 'shell:module_perms' %}">Permissões</a>
+      <a href="{% url 'shell:module_perms' %}"><i data-lucide="shield-check"></i> Permissões</a>
     {% endif %}
     {% if user.is_staff %}
-      <a href="{% url 'admin:index' %}">Admin</a>
+      <a href="{% url 'admin:index' %}"><i data-lucide="settings"></i> Admin</a>
     {% endif %}
   </div>
   {% if module_menu %}
@@ -36,7 +36,7 @@
     {% for m in module_menu %}
       <a href="{% url m.url_name %}"><b>{{ m.label }}</b></a>
       {% for item in m.items %}
-        <a href="{% url item.url_name %}" style="padding-left:var(--sp-6)">↳ {{ item.label }}</a>
+        <a href="{% url item.url_name %}" class="sub-item"><i data-lucide="corner-down-right"></i> {{ item.label }}</a>
       {% endfor %}
     {% endfor %}
   </div>
@@ -44,16 +44,16 @@
   {% if user.is_admin %}
   <div class="group">
     <div class="group-label">Cadastros</div>
-    <a href="{% url 'shared:setor_list' %}">Setores</a>
-    <a href="{% url 'shared:operador_list' %}">Operadores</a>
-    <a href="{% url 'shared:turno_list' %}">Turnos</a>
-    <a href="{% url 'shared:maquina_list' %}">Máquinas</a>
+    <a href="{% url 'shared:setor_list' %}"><i data-lucide="map-pin"></i> Setores</a>
+    <a href="{% url 'shared:operador_list' %}"><i data-lucide="hard-hat"></i> Operadores</a>
+    <a href="{% url 'shared:turno_list' %}"><i data-lucide="clock"></i> Turnos</a>
+    <a href="{% url 'shared:maquina_list' %}"><i data-lucide="cpu"></i> Máquinas</a>
   </div>
   {% endif %}
   <div class="group">
     <form method="post" action="{% url 'accounts:logout' %}" style="margin-top:var(--sp-4)">
       {% csrf_token %}
-      <button class="btn btn--ghost btn--block" type="submit">Sair</button>
+      <button class="btn btn--ghost btn--block" type="submit"><i data-lucide="log-out"></i> Sair</button>
     </form>
   </div>
 </nav>
@@ -69,28 +69,36 @@
 </main>
 
 <nav class="bottom-bar" aria-label="Navegação (mobile)">
-  <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}"><span class="ico">▦</span>Início</a>
+  <a href="{% url 'shell:home' %}" class="{% if request.resolver_match.namespace == 'shell' and request.resolver_match.url_name == 'home' %}active{% endif %}"><i data-lucide="layout-dashboard"></i><span>Início</span></a>
   {% if user.is_admin %}
-    <a href="{% url 'shell:module_perms' %}"><span class="ico">🔒</span>Permissões</a>
+    <a href="{% url 'shell:module_perms' %}"><i data-lucide="shield-check"></i><span>Permissões</span></a>
   {% endif %}
-  <a href="{% url 'accounts:profile' %}"><span class="ico">👤</span>Perfil</a>
+  <a href="{% url 'accounts:profile' %}"><i data-lucide="user"></i><span>Perfil</span></a>
   {% if user.is_staff %}
-    <a href="{% url 'admin:index' %}"><span class="ico">⚙</span>Admin</a>
+    <a href="{% url 'admin:index' %}"><i data-lucide="settings"></i><span>Admin</span></a>
   {% endif %}
 </nav>
 
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
-  // HTMX envia o token CSRF em todas as requisiças inseguras (DELETE/POST/etc.).
+  // HTMX envia o token CSRF em todas as requisições inseguras (DELETE/POST/etc.).
   document.body.addEventListener("htmx:configRequest", function (e) {
     var meta = document.querySelector("meta[name='csrf-token']");
     if (meta) { e.detail.headers["X-CSRFToken"] = meta.content; }
   });
+  function refreshIcons(){ if (window.lucide) window.lucide.createIcons(); }
+  document.addEventListener("DOMContentLoaded", refreshIcons);
+  document.addEventListener("alpine:initialized", refreshIcons);
+  window.addEventListener("load", refreshIcons);
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("{% url 'service_worker' %}").catch(function () {});
     });
   }
+  // Re-renderiza ícones Lucide sempre que o DOM mudar (HTMX/Alpine)
+  var observer = new MutationObserver(refreshIcons);
+  observer.observe(document.body, {childList:true, subtree:true});
   setTimeout(function () { document.querySelectorAll(".toast.show").forEach(function (t) { t.classList.remove("show"); }); }, 2500);
 </script>
 {% block scripts %}{% endblock %}

@@ -9,11 +9,12 @@
   <link rel="icon" type="image/svg+xml" href="{% static 'icons/icon.svg' %}">
   <title>Entrar · Plataforma PCP</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 <div class="login-wrap">
   <div class="login-card card">
-    <h1>🏭 PCP</h1>
+    <h1 class="brand"><i data-lucide="layers"></i> PCP</h1>
     <p style="text-align:center">Plataforma de Produção e Controle</p>
     <form method="post">
       {% csrf_token %}
@@ -34,5 +35,6 @@
     </form>
   </div>
 </div>
+<script>if (window.lucide) lucide.createIcons();</script>
 </body>
 </html>

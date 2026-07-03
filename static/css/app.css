@@ -158,6 +158,41 @@ table.data tr:hover td { background: var(--surface-2); }
 .muted { color: var(--text-muted); }
 
 /* ============================================================
+   Lucide icons (substituem emojis em toda a UI)
+   ============================================================ */
+[data-lucide], svg.lucide { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+h1 [data-lucide], h2 [data-lucide], h3 [data-lucide], .brand [data-lucide] { width: 20px; height: 20px; }
+.btn [data-lucide], .btn svg.lucide { width: 16px; height: 16px; }
+.bottom-bar [data-lucide], .bottom-bar svg.lucide { width: 22px; height: 22px; }
+.brand { display:flex; align-items:center; gap:var(--sp-2); }
+.brand [data-lucide], .brand svg.lucide { color: var(--primary); width: 22px; height: 22px; }
+.sidebar a [data-lucide], .sidebar a svg.lucide { margin-right: var(--sp-2); flex-shrink: 0; }
+.sidebar a.sub-item { display:flex; align-items:center; padding-left:var(--sp-6); }
+.sidebar a.sub-item [data-lucide], .sidebar a.sub-item svg.lucide { width: 14px; height: 14px; opacity: .7; margin-right: var(--sp-1); }
+.bottom-bar a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.icon-btn { background:transparent; border:none; cursor:pointer; color:var(--text-muted); display:inline-flex; padding:var(--sp-1); border-radius:var(--radius-sm); }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+/* ============================================================
+   Modais contextuais (Grade 2D operacional)
+   ============================================================ */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:200; padding:var(--sp-4); backdrop-filter: blur(2px); }
+.modal-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:var(--sp-5); width:100%; max-width:420px; box-shadow:var(--shadow-lg); max-height: 90vh; overflow:auto; }
+.modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-3); }
+.modal-head h3 { margin:0; display:flex; align-items:center; gap:var(--sp-2); }
+.modal-head h3 [data-lucide] { color: var(--primary); }
+
+.drag-banner { display:flex; align-items:center; gap:var(--sp-2); background:var(--st-disponivel-bg); color:var(--st-disponivel-fg); border:1px solid var(--st-disponivel-bd); border-radius:var(--radius-md); padding:var(--sp-2) var(--sp-3); margin-bottom:var(--sp-3); font-size:var(--fs-sm); }
+
+.detail-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:var(--sp-3); }
+.detail-head h3 { display:flex; align-items:center; gap:var(--sp-2); margin:0; }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2) var(--sp-4); margin-bottom:var(--sp-3); }
+.detail-grid > div { display:flex; flex-direction:column; gap:2px; }
+.detail-grid .muted { font-size:12px; }
+.detail-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); border-top:1px solid var(--border); padding-top:var(--sp-3); }
+.detail-actions .btn { display:inline-flex; align-items:center; gap:var(--sp-1); }
+
+/* ============================================================
    Sprint 3 — Grade 2D + ligas (ARC-14: min-cell 40px, scroll)
    ============================================================ */
 .liga-dot { display:inline-block; width:12px; height:12px; border-radius:50%; vertical-align:middle; margin-right:var(--sp-2); border:1px solid var(--border); }

@@ -27,7 +27,7 @@
           <td>{{ u.name|default:"—" }}</td>
           <td>{{ u.email }}</td>
           <td><span class="badge {% if u.is_admin %}badge--ok{% endif %}">{{ u.get_role_display|default:u.role }}</span></td>
-          <td>{% if u.is_superuser %}✓{% else %}—{% endif %}</td>
+          <td>{% if u.is_superuser %}<i data-lucide="check" style="color:var(--success);width:18px;height:18px"></i>{% else %}—{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>

@@ -8,6 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, ListView, View
 
 from base.mixins import ModulePermMixin
+from shared.models import Setor
 
 from .forms import BatchStep1Form, make_grade_form
 from .models import Batch
@@ -202,6 +203,10 @@ class EstoqueGradeView(ModulePermMixin, DetailView):
         ctx.update({
             "piles": piles,
             "piles_json": piles_json,
+            "setores_json": [
+                {"id": s.id, "nome": s.nome}
+                for s in Setor.objects.filter(is_active=True).order_by("sort_order", "id")
+            ],
             "grid": grid,
             "matrix": matrix,
             "cols": lote.colunas_grade,

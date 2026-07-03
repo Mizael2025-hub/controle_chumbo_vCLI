@@ -12,18 +12,18 @@
   <h2>Operação</h2>
   <div class="grid-cards">
     <a class="card" href="{% url 'chumbo:estoque' %}" style="text-decoration:none;color:inherit">
-      <h3>Estoque</h3><p>Lotes e grade 2D do chão de fábrica (RF10-RF17)</p>
+      <h3><i data-lucide="grid-3x3"></i> Estoque</h3><p>Lotes e grade 2D do chão de fábrica (RF10-RF17)</p>
     </a>
     {% if request.user.is_admin %}
     <a class="card" href="{% url 'chumbo:lote_create' %}" style="text-decoration:none;color:inherit">
-      <h3>Entrada</h3><p>Receber chumbo e montar a grade (RF20-RF25)</p>
+      <h3><i data-lucide="package-plus"></i> Entrada</h3><p>Receber chumbo e montar a grade (RF20-RF25)</p>
     </a>
     <a class="card" href="{% url 'chumbo:liberacao' %}" style="text-decoration:none;color:inherit">
-      <h3>Liberação</h3><p>Saída agrupada de montes (RF30-RF36)</p>
+      <h3><i data-lucide="package-minus"></i> Liberação</h3><p>Saída agrupada de montes (RF30-RF36)</p>
     </a>
     {% endif %}
     <a class="card" href="{% url 'chumbo:liberacao_hist' %}" style="text-decoration:none;color:inherit">
-      <h3>Saídas</h3><p>Histórico de liberações e estornos (RF70/RF76)</p>
+      <h3><i data-lucide="history"></i> Saídas</h3><p>Histórico de liberações e estornos (RF70/RF76)</p>
     </a>
   </div>
 </section>

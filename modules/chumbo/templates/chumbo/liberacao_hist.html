@@ -23,7 +23,7 @@
             <td>{{ t.monte.lote.numero_lote }}</td>
             <td>x{{ t.monte.posicao_x }}·y{{ t.monte.posicao_y }}</td>
             <td>{{ t.destino }}</td>
-            <td>{{ t.peso_baixado_kg|floatformat:3 }} kg · {{ t.barras_baixadas }}b</td>
+            <td>{{ t.peso_baixado_kg|floatformat:1 }} kg · {{ t.barras_baixadas }}b</td>
             <td>{{ t.created_by|default:"—" }}</td>
             <td>
               {% if t.estornada %}<span class="badge badge--danger">Estornada</span>

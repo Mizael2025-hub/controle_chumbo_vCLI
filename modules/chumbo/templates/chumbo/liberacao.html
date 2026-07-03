@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
   <h1>Liberação / Saída</h1>
-  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}"><i data-lucide="arrow-left"></i> Estoque</a>
 </div>
 
 <section class="section">
@@ -30,7 +30,7 @@
 
     <div class="grid-cards" style="grid-template-columns:1fr">
       {% for m in montes %}
-        <div class="card" x-data="monteLinha({{ m.barras_atuais }}, {{ m.peso_atual_kg|floatformat:3 }})">
+        <div class="card" x-data="monteLinha({{ m.barras_atuais }}, {{ m.peso_atual_kg|floatformat:1 }})">
           <div><b>{{ m.lote.numero_lote }}</b> · {{ m.lote.liga }} · x{{ m.posicao_x }}·y{{ m.posicao_y }}</div>
           <div class="muted" style="font-size:var(--sp-2)">Saldo: <span x-text="saldoKg"></span> kg · <span x-text="saldoBarras"></span> barras</div>
           <div class="row-actions" style="margin-top:var(--sp-2)">

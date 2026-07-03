@@ -5,12 +5,12 @@
 {% block content %}
 <div class="page-header">
   <h1>Split (movimentação parcial)</h1>
-  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque_lote' pile.lote_id %}">← Voltar</a>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque_lote' pile.lote_id %}"><i data-lucide="arrow-left"></i> Voltar</a>
 </div>
 
 <section class="section">
   <p>O novo monte é criado na posição virtual <b>x=99</b>. O monte original é reduzido proporcionalmente.</p>
-  <p><b>Monte origem:</b> {{ pile }} · {{ pile.peso_atual_kg|floatformat:3 }} kg · {{ pile.barras_atuais }} barras</p>
+  <p><b>Monte origem:</b> {{ pile }} · {{ pile.peso_atual_kg|floatformat:1 }} kg · {{ pile.barras_atuais }} barras</p>
   <form method="post">
     {% csrf_token %}
     {% for field in form %}

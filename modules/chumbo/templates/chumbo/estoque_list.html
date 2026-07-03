@@ -23,7 +23,7 @@
             <td>{{ lote.numero_lote }}</td>
             <td>{{ lote.data_chegada|date:"d/m/Y" }}</td>
             <td>{{ lote.colunas_grade }}×{{ lote.linhas_grade }}</td>
-            <td>{{ kg|floatformat:3 }}</td>
+            <td>{{ kg|floatformat:1 }}</td>
             <td>{{ barras }}</td>
             <td><a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque_lote' lote.pk %}">Ver grade</a></td>
           </tr>

@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header">
   <h1>Receber chumbo · Etapa 2/2</h1>
-  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:lote_create' %}">← Voltar</a>
+  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:lote_create' %}"><i data-lucide="arrow-left"></i> Voltar</a>
 </div>
 
 <section class="section">
@@ -43,7 +43,7 @@
       <ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
     {% endif %}
     <div class="btn-row" style="margin-top:var(--sp-4)">
-      <button class="btn btn--primary" type="submit">Confirmar lote</button>
+      <button class="btn btn--primary" type="submit"><i data-lucide="check"></i> Confirmar lote</button>
       <a class="btn btn--ghost" href="{% url 'chumbo:lote_create' %}">Voltar</a>
     </div>
   </form>
