@@ -5,50 +5,86 @@
 {% block content %}
 <div class="page-header">
   <h1><span class="liga-dot liga-{{ liga_cor }}"></span>{{ lote }}</h1>
-  <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
+  <div class="btn-row">
+    <a class="btn btn--ghost btn--sm" href="{% url 'chumbo:estoque' %}">← Estoque</a>
+    {% if request.user.is_admin %}
+    <button class="btn btn--ghost btn--sm" x-show="!modoDrag" @click="modoDrag=true">✋ Remanejar (drag)</button>
+    <button class="btn btn--primary btn--sm" x-show="modoDrag" @click="modoDrag=false; sel=null">✓ Concluir remanejamento</button>
+    {% endif %}
+  </div>
 </div>
 
-<section class="section" x-data="gradeView({{ piles_json|safe }})">
+<section class="section" x-data="gradeOperacional({
+    piles: {{ piles_json|safe }},
+    is_admin: {% if request.user.is_admin %}true{% else %}false{% endif %}
+  })" x-init="init()">
+
   <div class="metrics-row">
     <div class="metric"><span class="label">No estoque</span><span class="num">{{ estoque_kg|floatformat:3 }} kg</span><small>{{ estoque_barras }} barras</small></div>
     <div class="metric"><span class="label">Disponível</span><span class="num">{{ disponivel_kg|floatformat:3 }} kg</span><small>{{ disponivel_barras }} barras</small></div>
     <div class="metric"><span class="label">Reservado</span><span class="num">{{ reservado_kg|floatformat:3 }} kg</span><small>{{ reservado_barras }} barras</small></div>
   </div>
 
+  <div class="lote-summary">
+    <span><b>Ref. barra:</b> {{ lote.peso_barra_ref_kg|floatformat:3 }} kg</span>
+    <span><b>Cap. por monte:</b> {{ lote.capacidade_montes }} barras</span>
+    <span class="muted" style="font-size:var(--fs-sm)">valores informativos · x = coluna · y = empilhamento (0=chão)</span>
+  </div>
+
+  <template x-if="modoDrag && is_admin">
+    <div class="toast show toast--success" style="display:block; position:static; transform:none; box-shadow:none; padding:var(--sp-3); margin-bottom:var(--sp-3); border-radius:var(--radius-md)">
+      Modo remanejamento ativo: arraste um monte sobre uma célula vazia para mover. Preserva estado (kg/barras/status/reserva).
+    </div>
+  </template>
+
   <div class="grade-toolbar">
     <button class="btn btn--ghost btn--sm" @click="$refs.g.classList.toggle('grade--compact')">Modo compacto</button>
-    <span class="muted" style="font-size:var(--fs-sm)">Toque numa célula para detalhes · arraste para rolar</span>
+    <span class="muted" style="font-size:var(--fs-sm)" x-text="modoDrag ? 'Arraste os montes' : 'Toque numa célula para ver detalhes e operar'"></span>
   </div>
 
   <div class="grade-wrap">
     <div class="grade" ref="g" style="grid-template-columns: repeat({{ cols }}, minmax(40px, 78px));">
       {% for row in matrix %}
-        {% for p in row %}
-          {% if p %}
-            <button class="grade-cell st-{{ p.status|lower }}" type="button" @click="sel = {{ p.pk }}" :class="sel === {{ p.pk }} ? 'grade-cell--active' : ''">
-              <span class="grade-pos">x{{ p.posicao_x }}·y{{ p.posicao_y }}</span>
+        {% for cell in row %}
+          {% if cell.ocupado %}
+            {% with p=cell.pile %}
+            <button class="grade-cell st-{{ p.status|lower }}" type="button"
+                    :class="sel === {{ p.pk }} ? 'grade-cell--active' : ''"
+                    @click="sel = {{ p.pk }}"
+                    :draggable="modoDrag ? 'true' : 'false'"
+                    @drop.prevent="soltar({{ cell.x }}, {{ cell.y }})"
+                    @dragover.prevent
+                    @dragstart="iniciarDrag({{ p.pk }}, {{ cell.x }}, {{ cell.y }}, $event)"
+                    style="position:relative">
+              <span class="grade-pos">x{{ cell.x }}·y{{ cell.y }}</span>
               <span class="grade-kg">{{ p.peso_atual_kg|floatformat:1 }}kg</span>
               <span class="grade-bar">{{ p.barras_atuais }}b</span>
+              {% if p.status == 'RESERVADO' %}<span class="grade-tag">R</span>{% endif %}
+              {% if p.status == 'PARCIAL' %}<span class="grade-tag">P</span>{% endif %}
             </button>
+            {% endwith %}
           {% else %}
-            <div class="grade-cell grade-cell--vazio"><span class="grade-pos">·</span></div>
+            <div class="grade-cell grade-cell--vazio"
+                 @drop.prevent="soltar({{ cell.x }}, {{ cell.y }})"
+                 @dragover.prevent>
+              <span class="grade-pos">x{{ cell.x }}·y{{ cell.y }}</span>
+            </div>
           {% endif %}
         {% endfor %}
       {% endfor %}
     </div>
   </div>
 
-  <div class="grade-detail" x-show="sel !== null" x-cloak>
+  <div class="grade-detail" x-show="sel !== null && !modoDrag" x-cloak>
     <template x-for="p in piles" :key="p.pk">
       <div x-show="sel === p.pk" class="detail-card">
         <h3 x-text="'Monte ' + p.pos"></h3>
-        <p><b>Status:</b> <span x-text="p.status"></span></p>
-        <p><b>Peso:</b> <span x-text="p.kg"></span> kg · <b>Barras:</b> <span x-text="p.barras"></span></p>
-        <p><b>Localização:</b> <span x-text="p.local"></span></p>
+        <p><b>Status:</b> <span x-text="p.status"></span> · <b>Local:</b> <span x-text="p.local"></span></p>
+        <p><b>Saldo:</b> <span x-text="p.kg"></span> kg · <span x-text="p.barras"></span> barras</p>
         {% if request.user.is_admin %}
         <div class="btn-row" style="margin-top:var(--sp-2)">
           <a class="btn btn--primary btn--sm" :href="p.urlReserva">Reservar</a>
-          <a class="btn btn--ghost btn--sm" :href="p.urlMover">Mover</a>
+          <a class="btn btn--ghost btn--sm" :href="p.urlMover">Mover setor</a>
           <a class="btn btn--ghost btn--sm" :href="p.urlSplit">Split</a>
           <a class="btn btn--ghost btn--sm" :href="p.urlEventos">Eventos</a>
           <form method="post" :action="p.urlDevolver" style="display:inline">
@@ -67,10 +103,42 @@
 {% block scripts %}
 <script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 <script>
-function gradeView(piles) {
+function gradeOperacional(ctx) {
   return {
+    piles: ctx.piles || [],
+    is_admin: ctx.is_admin || false,
     sel: null,
-    piles: piles || []
+    modoDrag: false,
+    dragPile: null,
+    dragDe: null,
+    init() {},
+    iniciarDrag(pk, x, y, ev) {
+      this.dragPile = pk;
+      this.dragDe = {x: x, y: y};
+      if (ev && ev.dataTransfer) { ev.dataTransfer.setData('text/plain', String(pk)); }
+    },
+    async soltar(nx, ny) {
+      if (!this.modoDrag || !this.dragPile) return;
+      if (this.dragDe && this.dragDe.x === nx && this.dragDe.y === ny) {
+        this.dragPile = null; this.dragDe = null; return;
+      }
+      var fd = new FormData();
+      fd.append('csrfmiddlewaretoken', document.querySelector('meta[name="csrf-token"]').content);
+      fd.append('x', nx); fd.append('y', ny);
+      var url = '/chumbo/montes/remanejar/' + this.dragPile + '/';
+      try {
+        var res = await fetch(url, {method:'POST', body: fd, credentials:'same-origin'});
+        var data = await res.json();
+        if (data.ok) {
+          window.location.reload();
+        } else {
+          alert(data.error || 'Falha ao remanejar.');
+        }
+      } catch (e) {
+        alert('Erro de rede: ' + e.message);
+      }
+      this.dragPile = null; this.dragDe = null;
+    }
   };
 }
 </script>

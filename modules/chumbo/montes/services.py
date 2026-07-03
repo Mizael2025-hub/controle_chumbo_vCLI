@@ -262,6 +262,39 @@ def devolver_almoxarifado(*, user, monte: Pile, preservar_reserva: bool = True):
         return pile
 
 
+def remanejar(*, user, monte: Pile, nova_posicao_x: int, nova_posicao_y: int):
+    """Remanejamento espacial na grade 2D (§4 Movimentação Interna).
+    Preserva o estado (status, kg, barras, reserva, localização) — move só
+    coordenadas. Suporta montes parciais e reservados. Drag-and-drop admin."""
+    with transaction.atomic():
+        pile = Pile.objects.select_for_update().get(pk=monte.pk)
+        if pile.status == PileStatus.CONSUMIDO:
+            raise ValueError("Monte consumido não pode ser remanejado.")
+        if nova_posicao_x < 0 or nova_posicao_x > 99:
+            raise ValueError("Posição X inválida (0-99).")
+        if nova_posicao_y < 0 or nova_posicao_y > 4:
+            raise ValueError("Posição Y inválida (0-4).")
+        if nova_posicao_x == pile.posicao_x and nova_posicao_y == pile.posicao_y:
+            return pile
+        conflito = Pile.objects.filter(
+            lote=pile.lote, posicao_x=nova_posicao_x, posicao_y=nova_posicao_y,
+            is_active=True,
+        ).exclude(pk=pile.pk).first()
+        if conflito is not None:
+            raise ValueError("Posição de destino já ocupada por outro monte.")
+        antiga = f"x{pile.posicao_x},y{pile.posicao_y}"
+        pile.posicao_x = nova_posicao_x
+        pile.posicao_y = nova_posicao_y
+        pile.save(update_fields=["posicao_x", "posicao_y", "updated_at"])
+        PileEvent.objects.create(
+            monte=pile,
+            tipo=EventType.MOVIDO_PARA_SETOR,
+            dados={"remanejamento": True, "de": antiga, "para": f"x{nova_posicao_x},y{nova_posicao_y}"},
+            created_by=user,
+        )
+        return pile
+
+
 def split(*, user, monte: Pile, barras: int, peso_kg: Decimal, posicao_x: int = 99):
     """Movimentação parcial (RF52): monte filho na posição virtual x=99."""
     if barras <= 0 or peso_kg <= 0:

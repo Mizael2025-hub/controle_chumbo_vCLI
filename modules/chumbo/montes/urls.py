@@ -9,4 +9,5 @@ urlpatterns = [
     path("mover/<int:pk>/devolver/", views.DevolverView.as_view(), name="devolver"),
     path("mover/<int:pk>/split/", views.SplitView.as_view(), name="split"),
     path("eventos/<int:pk>/", views.EventosView.as_view(), name="eventos"),
+    path("remanejar/<int:pk>/", views.RemanejarView.as_view(), name="remanejar"),
 ]

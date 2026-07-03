@@ -20,11 +20,15 @@ class BatchStep1Form(forms.ModelForm):
             "data_chegada",
             "colunas_grade",
             "linhas_grade",
+            "peso_barra_ref_kg",
+            "capacidade_montes",
         ]
         labels = {
             "numero_lote": "Número do lote",
             "colunas_grade": "Colunas da grade (1-10)",
             "linhas_grade": "Linhas da grade (1-5)",
+            "peso_barra_ref_kg": "Peso médio por barra (kg, ref.)",
+            "capacidade_montes": "Capacidade padrão por monte (barras)",
         }
 
     def clean_data_chegada(self):

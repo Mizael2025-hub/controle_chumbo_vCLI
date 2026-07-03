@@ -9,9 +9,11 @@ from modules.chumbo.montes.services import (
     cancelar_reserva,
     devolver_almoxarifado,
     mover_para_setor,
+    remanejar,
     reservar,
     split,
 )
+from django.http import JsonResponse
 from shared.models import Setor
 
 from modules.chumbo.saida.forms import MoverForm, ReservaForm, SplitForm
@@ -137,3 +139,22 @@ class EventosView(ModulePermMixin, View):
         pile = get_object_or_404(Pile, pk=pk, is_active=True)
         eventos = PileEvent.objects.filter(monte=pile).select_related("created_by")
         return render(request, self.template_name, {"pile": pile, "eventos": eventos})
+
+
+class RemanejarView(ModulePermMixin, View):
+    """Remanejamento espacial via drag-and-drop (§4). Admin apenas."""
+    module_slug = "chumbo"
+    required_module_role = "admin"
+
+    def post(self, request, pk):
+        pile = get_object_or_404(Pile, pk=pk, is_active=True)
+        try:
+            nx = int(request.POST.get("x"))
+            ny = int(request.POST.get("y"))
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Coordenadas inválidas."}, status=400)
+        try:
+            remanejar(user=request.user, monte=pile, nova_posicao_x=nx, nova_posicao_y=ny)
+        except ValueError as e:
+            return JsonResponse({"ok": False, "error": str(e)}, status=400)
+        return JsonResponse({"ok": True, "x": nx, "y": ny})

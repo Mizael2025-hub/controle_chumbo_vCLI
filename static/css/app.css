@@ -199,6 +199,14 @@ table.data tr:hover td { background: var(--surface-2); }
 button.grade-cell { cursor:pointer; font:inherit; min-height: var(--tap-min); }
 button.grade-cell.grade-cell--active { box-shadow: 0 0 0 3px var(--primary); }
 
+.grade-tag {
+  position: absolute; top: 2px; right: 2px;
+  font-size: 9px; font-weight: var(--fw-bold); padding: 0 4px;
+  border-radius: var(--radius-sm); background: rgba(0,0,0,.4); color: #fff;
+}
+.grade-cell[draggable="true"] { cursor: grab; }
+.grade-cell[draggable="true"]:active { cursor: grabbing; opacity: .6; }
+
 .grade--compact { grid-template-columns: 1fr !important; grid-auto-rows: auto !important; }
 .grade--compact .grade-cell { flex-direction:row; justify-content:space-between; min-height: var(--tap-min); }
 

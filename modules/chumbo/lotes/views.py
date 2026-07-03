@@ -180,7 +180,13 @@ class EstoqueGradeView(ModulePermMixin, DetailView):
         for y in range(lote.linhas_grade):
             row = []
             for x in range(lote.colunas_grade):
-                row.append(grid.get((x, y)))
+                p = grid.get((x, y))
+                row.append({
+                    "pile": p,
+                    "x": x,
+                    "y": y,
+                    "ocupado": p is not None,
+                })
             matrix.append(row)
 
         estoque_kg = sum((p.peso_atual_kg for p in piles), Decimal("0"))

@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from decimal import Decimal
 
 from base.managers import ActiveManager
 from base.models import BaseModel
@@ -30,6 +31,16 @@ class Batch(BaseModel):
         verbose_name="Linhas da grade",
     )
     is_active = models.BooleanField(default=True, verbose_name="Ativo")
+    # Informativos (regras de negócio §2): não-validam, só referência.
+    peso_barra_ref_kg = models.DecimalField(
+        max_digits=10, decimal_places=3, default=Decimal("26.000"),
+        verbose_name="Peso médio por barra (ref., kg)",
+        help_text="Informativo. ~26 kg. Editável, sem validação rígida.",
+    )
+    capacidade_montes = models.PositiveIntegerField(
+        default=50, verbose_name="Capacidade padrão por monte (barras)",
+        help_text="Informativo. ~50 barras. Sem restrição.",
+    )
     created_by = models.ForeignKey(
         "accounts.User",
         null=True,
