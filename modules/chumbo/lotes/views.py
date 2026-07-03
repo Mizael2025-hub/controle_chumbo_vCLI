@@ -33,8 +33,6 @@ class LoteStep1View(ModulePermMixin, View):
             "liga_nome": cd["liga"].nome,
             "numero_lote": cd["numero_lote"],
             "data_chegada": cd["data_chegada"].isoformat(),
-            "peso_inicial_kg": str(cd["peso_inicial_kg"]),
-            "barras_iniciais": cd["barras_iniciais"],
             "colunas_grade": cd["colunas_grade"],
             "linhas_grade": cd["linhas_grade"],
         }
@@ -99,13 +97,9 @@ class LoteStep2View(ModulePermMixin, View):
 
         soma_kg = sum((c[0] for c in celulas.values()), Decimal("0"))
         soma_barras = sum(c[1] for c in celulas.values())
-        peso_total = Decimal(s1["peso_inicial_kg"])
-        barras_total = s1["barras_iniciais"]
 
-        if soma_kg != peso_total:
-            form.add_error(None, f"Soma de kg da grade ({soma_kg}) não bate com o total do lote ({peso_total}).")
-        if soma_barras != barras_total:
-            form.add_error(None, f"Soma de barras ({soma_barras}) não bate com o total ({barras_total}).")
+        if not celulas or soma_kg <= 0 or soma_barras <= 0:
+            form.add_error(None, "Preencha ao menos uma célula da grade com kg e barras maiores que zero.")
         if form.errors:
             return render(
                 request, self.template_name, {"form": form, "cols": cols, "rows": rows, "s1": s1, "cells": self._cells(form, cols, rows)}
@@ -116,8 +110,8 @@ class LoteStep2View(ModulePermMixin, View):
             liga_id=s1["liga_id"],
             numero_lote=s1["numero_lote"],
             data_chegada=datetime.date.fromisoformat(s1["data_chegada"]),
-            peso_inicial_kg=peso_total,
-            barras_iniciais=barras_total,
+            peso_inicial_kg=soma_kg,
+            barras_iniciais=soma_barras,
             colunas_grade=cols,
             linhas_grade=rows,
             celulas=celulas,

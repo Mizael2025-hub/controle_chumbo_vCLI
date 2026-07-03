@@ -18,15 +18,11 @@ class BatchStep1Form(forms.ModelForm):
             "liga",
             "numero_lote",
             "data_chegada",
-            "peso_inicial_kg",
-            "barras_iniciais",
             "colunas_grade",
             "linhas_grade",
         ]
         labels = {
             "numero_lote": "Número do lote",
-            "peso_inicial_kg": "Peso inicial (kg)",
-            "barras_iniciais": "Barras iniciais",
             "colunas_grade": "Colunas da grade (1-10)",
             "linhas_grade": "Linhas da grade (1-5)",
         }

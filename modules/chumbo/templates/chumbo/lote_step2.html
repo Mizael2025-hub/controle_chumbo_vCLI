@@ -13,14 +13,14 @@
     <span><b>Liga:</b> {{ s1.liga_nome }}</span>
     <span><b>Lote:</b> {{ s1.numero_lote }}</span>
     <span><b>Grade:</b> {{ cols }}×{{ rows }}</span>
-    <span><b>Total:</b> {{ s1.peso_inicial_kg }} kg · {{ s1.barras_iniciais }} barras</span>
   </div>
 
-  <form method="post" x-data="gradeSoma('{{ s1.peso_inicial_kg }}', {{ s1.barras_iniciais }})">
+  <form method="post" x-data="gradeSoma()">
     {% csrf_token %}
     <div class="grade-meta">
-      <span class="badge" :class="somaOkKg ? 'badge--ok' : 'badge--danger'">kg: <b x-text="somaKg"></b> / {{ s1.peso_inicial_kg }}</span>
-      <span class="badge" :class="somaOkBarras ? 'badge--ok' : 'badge--danger'">barras: <b x-text="somaBarras"></b> / {{ s1.barras_iniciais }}</span>
+      <span class="badge badge--ok">Total: <b x-text="somaKg"></b> kg</span>
+      <span class="badge badge--ok">Total: <b x-text="somaBarras"></b> barras</span>
+      <span class="muted" style="font-size:var(--fs-sm)">Preencha os montes — o total é a soma deles.</span>
     </div>
 
     <div class="grade-wrap">
@@ -53,12 +53,10 @@
 {% block scripts %}
 <script src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 <script>
-function gradeSoma(totalKg, totalBarras) {
+function gradeSoma() {
   return {
-    totalKg: totalKg, totalBarras: totalBarras,
     somaKg: "0", somaBarras: 0,
-    somaOkKg: false, somaOkBarras: false,
-    init() { this.calcular(); this.$watch = null; document.querySelector('.grade').addEventListener('input', () => this.calcular()); },
+    init() { this.calcular(); document.querySelector('.grade').addEventListener('input', () => this.calcular()); },
     calcular() {
       var kgs = 0, bars = 0;
       document.querySelectorAll('.grade input').forEach(function (inp) {
@@ -66,10 +64,8 @@ function gradeSoma(totalKg, totalBarras) {
         if (name.indexOf('peso_') === 0) { var v = parseFloat((inp.value || '0').replace(',', '.')); if (!isNaN(v)) kgs += v; }
         if (name.indexOf('barras_') === 0) { var v = parseInt(inp.value || '0', 10); if (!isNaN(v)) bars += v; }
       });
-      this.somaKg = kgs.toString();
+      this.somaKg = kgs.toFixed(3).replace(/\.?0+$/, '') || '0';
       this.somaBarras = bars;
-      this.somaOkKg = Math.abs(kgs - parseFloat(this.totalKg)) < 0.0005;
-      this.somaOkBarras = (bars === parseInt(this.totalBarras, 10));
     }
   };
 }
